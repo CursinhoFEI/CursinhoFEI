@@ -1,0 +1,2373 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cursinho FEI · Conecta · Aluno</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* Identidade institucional FEI */
+    --azul-atlantico:#006EAA;
+    --azul-cobalto:#243574;
+    --azul-esmeralda:#63C1D0;
+    --cinza-urbano:#7B7C7E;
+
+    --navy-900:#1A2755;
+    --navy-800:var(--azul-cobalto);
+    --blue-600:var(--azul-atlantico);
+    --blue-100:#DCEEF6;
+    --accent:var(--azul-esmeralda);
+    --accent-100:#E4F5F8;
+
+    --ok:#1F8A5F; --ok-100:#DEF2E7;
+    --warn:#B5790A; --warn-100:#FBEDD3;
+    --risk:#C03B2B; --risk-100:#FBE1DD;
+
+    --bg:#F2F5F8;
+    --card:#FFFFFF;
+    --ink:#151E33;
+    --muted:var(--cinza-urbano);
+    --line:#E3E7ED;
+    --radius:16px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  a{color:inherit;}
+  button{font-family:inherit;cursor:pointer;}
+  ::selection{background:var(--accent-100);}
+
+  /* ---------- Shell ---------- */
+  .shell{display:flex;min-height:100vh;}
+  .sidebar{
+    width:248px;flex:none;
+    background:linear-gradient(180deg,var(--navy-900),var(--navy-800) 75%);
+    color:#fff;
+    display:flex;flex-direction:column;
+    padding:22px 16px;
+    position:sticky;top:0;height:100vh;
+  }
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 22px;}
+  .atom-mark{width:34px;height:34px;position:relative;flex:none;}
+  .atom-mark svg{width:100%;height:100%;}
+  .brand-text{line-height:1.15;}
+  .brand-text .b1{font-family:'Space Grotesk';font-weight:700;font-size:15px;letter-spacing:.2px;}
+  .brand-text .b2{font-size:10.5px;color:#AFC3E0;text-transform:uppercase;letter-spacing:1.2px;}
+
+  .nav{display:flex;flex-direction:column;gap:3px;margin-top:6px;}
+  .nav button{
+    all:unset;display:flex;align-items:center;gap:10px;
+    padding:10px 12px;border-radius:10px;color:#C9D5EA;
+    font-size:13.5px;font-weight:500;
+  }
+  .nav button svg{width:17px;height:17px;flex:none;opacity:.85;}
+  .nav button:hover{background:rgba(255,255,255,.07);color:#fff;}
+  .nav button.active{background:var(--blue-600);color:#fff;}
+  .nav .section-label{font-size:10px;text-transform:uppercase;letter-spacing:1.3px;color:#8493BE;margin:16px 10px 6px;}
+
+  .sidebar-foot{margin-top:auto;padding:12px 10px 2px;border-top:1px solid rgba(255,255,255,.12);}
+  .sidebar-foot .streak{display:flex;align-items:center;gap:8px;font-size:12.5px;color:#DCE5F2;}
+  .sidebar-foot .streak b{color:var(--azul-esmeralda);font-family:'Space Grotesk';}
+  .sidebar-foot .streak-note{font-size:10.5px;color:#8493BE;margin-top:4px;line-height:1.4;}
+  .logout-btn{
+    all:unset;display:flex;align-items:center;gap:8px;width:100%;box-sizing:border-box;
+    margin-top:12px;padding:9px 10px;border-radius:10px;font-size:12px;font-weight:600;
+    color:#C9D5EA;cursor:pointer;transition:.15s;
+  }
+  .logout-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+  .logout-btn svg{width:15px;height:15px;flex:none;}
+
+  .mascot-row{display:flex;align-items:flex-end;gap:8px;margin-bottom:10px;}
+  .mascot-svg{width:42px;height:42px;flex:none;}
+  .mascot-bubble{
+    position:relative;background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.16);
+    border-radius:10px 10px 10px 2px;padding:7px 10px;font-size:11px;line-height:1.3;color:#EAF0FA;font-weight:600;
+  }
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column;}
+
+  /* ---------- Topbar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 28px;background:#fff;border-bottom:1px solid var(--line);
+    position:sticky;top:0;z-index:5;gap:16px;flex-wrap:wrap;
+  }
+  .topbar h1{font-size:18px;margin:0;font-weight:700;}
+  .topbar .sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+  .top-right{display:flex;align-items:center;gap:14px;}
+
+  .user-chip{display:flex;align-items:center;gap:10px;}
+  .rank-badge{
+    width:42px;height:42px;border-radius:12px;flex:none;
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    background:var(--navy-900);color:#fff;
+  }
+  .rank-badge .num{font-family:'Space Grotesk';font-size:14px;font-weight:700;line-height:1;}
+  .rank-badge .lbl{font-size:7px;text-transform:uppercase;letter-spacing:.4px;color:var(--azul-esmeralda);margin-top:2px;}
+  .user-meta{line-height:1.2;}
+  .user-meta .name{font-size:13px;font-weight:700;}
+  .user-meta .lvl{font-size:11px;color:var(--muted);}
+
+  /* ---------- Content ---------- */
+  .content{padding:26px 28px 60px;max-width:1180px;width:100%;margin:0 auto;}
+  .view{display:none;animation:fade .25s ease;}
+  .view.active{display:block;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:20px;}
+  .grid{display:grid;gap:16px;}
+  .grid-3{grid-template-columns:repeat(3,1fr);}
+  .grid-2{grid-template-columns:1.3fr .9fr;}
+  @media (max-width:880px){.grid-3{grid-template-columns:1fr 1fr;} .grid-2{grid-template-columns:1fr;}}
+  @media (max-width:600px){.grid-3{grid-template-columns:1fr;}}
+
+  /* Hero / painel — lidera com a posição no ranking */
+  .hero{
+    background:linear-gradient(120deg,var(--navy-900),var(--azul-atlantico));
+    color:#fff;border-radius:20px;padding:26px;position:relative;overflow:hidden;
+  }
+  .hero::before{
+    content:"";position:absolute;right:-60px;top:-60px;width:220px;height:220px;border-radius:50%;
+    border:22px solid rgba(255,255,255,.07);
+  }
+  .hero::after{
+    content:"";position:absolute;right:20px;bottom:-70px;width:160px;height:160px;border-radius:50%;
+    border:16px solid rgba(99,193,208,.22);
+  }
+  .hero-rank{display:flex;align-items:center;gap:14px;position:relative;z-index:1;}
+  .hero-rank .big-pos{font-family:'Space Grotesk';font-size:40px;font-weight:700;line-height:1;}
+  .hero-rank .pos-meta{font-size:12px;color:#C4D6EE;}
+  .hero-rank .pos-meta b{color:var(--azul-esmeralda);}
+  .hero h2{margin:14px 0 4px;font-size:20px;position:relative;z-index:1;}
+  .hero p{margin:0;color:#C4D6EE;font-size:13.5px;max-width:520px;position:relative;z-index:1;}
+  .hero-stats{display:flex;gap:26px;margin-top:20px;flex-wrap:wrap;position:relative;z-index:1;}
+  .hero-stat b{font-family:'Space Grotesk';font-size:21px;display:block;}
+  .hero-stat span{font-size:11px;color:#AFC3E0;text-transform:uppercase;letter-spacing:.6px;}
+
+  .stat-card{display:flex;flex-direction:column;gap:6px;}
+  .stat-card .label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;}
+  .stat-card .value{font-family:'Space Grotesk';font-size:24px;font-weight:700;}
+  .stat-card .foot{font-size:11.5px;color:var(--muted);}
+
+  .section-title{display:flex;align-items:center;justify-content:space-between;margin:30px 0 12px;}
+  .section-title h3{margin:0;font-size:16px;}
+  .section-title .hint{font-size:12px;color:var(--muted);}
+
+  /* Today mini schedule */
+  .today-list{display:flex;flex-direction:column;gap:8px;}
+  .today-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;}
+  .today-time{font-family:'JetBrains Mono';font-size:11.5px;color:var(--azul-atlantico);background:var(--blue-100);padding:4px 8px;border-radius:8px;flex:none;}
+  .today-item .subj{font-weight:600;font-size:13.5px;}
+  .today-item .who{font-size:11.5px;color:var(--muted);margin-left:auto;}
+
+  /* XP por presença */
+  .xp-explainer{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:14px;background:var(--accent-100);}
+  .xp-explainer .flame{font-size:26px;flex:none;}
+  .xp-explainer .t{font-weight:700;font-size:13.5px;}
+  .xp-explainer .d{font-size:12px;color:var(--muted);margin-top:2px;}
+  .tier-row{display:flex;align-items:center;gap:10px;padding:9px 4px;border-bottom:1px solid var(--line);font-size:12.5px;}
+  .tier-row:last-child{border-bottom:none;}
+  .tier-row .tag{width:70px;flex:none;font-family:'JetBrains Mono';font-size:11px;color:var(--muted);}
+  .tier-row .xp{margin-left:auto;font-family:'JetBrains Mono';font-weight:700;color:var(--azul-atlantico);}
+  .tier-row.current{background:var(--accent-100);border-radius:10px;}
+
+  /* Badges strip */
+  .badge-strip{display:flex;gap:10px;overflow-x:auto;padding-bottom:4px;}
+  .badge-pill{
+    flex:none;display:flex;align-items:center;gap:8px;background:var(--accent-100);
+    border:1px solid #B7E3EA;padding:8px 12px;border-radius:12px;font-size:12px;font-weight:600;color:#0E5D6B;
+  }
+  .badge-pill.locked{background:var(--bg);color:var(--muted);border-color:var(--line);opacity:.7;}
+
+  /* Weekly grid (7 dias, incluindo fim de semana) */
+  .week-grid{
+    display:grid;grid-template-columns:110px repeat(7,1fr);
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);
+  }
+  .week-grid .cell{padding:12px 10px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
+  .week-grid .cell:last-child{border-right:none;}
+  .week-grid .head{background:var(--navy-900);color:#fff;font-family:'Space Grotesk';font-size:12.5px;text-align:center;font-weight:600;}
+  .week-grid .head.weekend{background:var(--navy-800);}
+  .week-grid .time-col{background:var(--bg);font-family:'JetBrains Mono';font-size:11px;color:var(--azul-atlantico);display:flex;flex-direction:column;justify-content:center;gap:2px;}
+  .week-grid .lesson{min-height:64px;display:flex;flex-direction:column;justify-content:center;gap:3px;transition:.15s;position:relative;}
+  .week-grid .lesson.today{background:var(--accent-100);}
+  .week-grid .lesson .s-name{font-weight:700;font-size:12.5px;}
+  .week-grid .lesson .s-tag{font-size:10.5px;color:var(--muted);}
+  .week-grid .lesson.empty{color:#B7C0CE;font-size:11px;display:flex;align-items:center;justify-content:center;}
+  .week-grid .lesson.weekend-col{background:#FAFBFC;}
+
+  /* Pendências de tarefa na grade */
+  .week-grid .lesson.has-pending{background:var(--warn-100);}
+  .pending-flag{
+    display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:700;
+    color:var(--warn);background:#FCE3B4;border-radius:6px;padding:2px 6px;margin-top:2px;width:fit-content;
+  }
+  .week-grid .lesson.pending-only{color:var(--warn);font-weight:600;font-size:11px;background:var(--warn-100);gap:2px;}
+  .week-grid .lesson.pending-only .s-name{font-size:11.5px;}
+
+  /* Subject cards (capa) */
+  .subject-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+  .subject-card{
+    background:var(--card);border:1px solid var(--line);border-radius:16px;overflow:hidden;
+    cursor:pointer;transition:.15s;
+  }
+  .subject-card:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(21,30,51,.1);}
+  .subject-cover{
+    height:104px;position:relative;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:10px 12px;background-blend-mode:overlay;
+  }
+  .subject-cover .icon{font-size:30px;filter:drop-shadow(0 2px 3px rgba(0,0,0,.18));}
+  .subject-cover .grp{
+    font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#fff;
+    background:rgba(21,30,51,.4);padding:3px 8px;border-radius:999px;backdrop-filter:blur(2px);
+  }
+  .subject-body{padding:12px 14px 14px;}
+  .subject-body .s-name{font-weight:700;font-size:13.5px;line-height:1.25;}
+  .subject-body .s-tag2{font-size:11px;color:var(--muted);margin-top:3px;}
+  .subject-body .s-meta{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:10.5px;color:var(--muted);}
+  .subject-body .bar-track{flex:1;height:5px;}
+
+  .subject-detail-head{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+  .back-btn{
+    all:unset;display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--azul-atlantico);
+    padding:7px 12px;border-radius:999px;background:var(--blue-100);cursor:pointer;
+  }
+  .detail-cover{
+    height:92px;border-radius:14px;display:flex;align-items:center;gap:12px;padding:0 18px;margin-bottom:16px;color:#fff;
+  }
+  .detail-cover .icon{font-size:32px;}
+  .detail-cover .t1{font-family:'Space Grotesk';font-weight:700;font-size:17px;}
+  .detail-cover .t2{font-size:11.5px;opacity:.85;}
+
+  .material-chip{
+    all:unset;display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:700;
+    padding:3px 8px;border-radius:7px;margin-right:6px;margin-top:2px;cursor:pointer;transition:.15s;
+  }
+  .material-chip:hover{filter:brightness(.95);transform:translateY(-1px);}
+  .material-chip.aula{background:var(--blue-100);color:var(--azul-atlantico);}
+  .material-chip.lista{background:#FDE3E1;color:#C22B22;}
+
+  .module-row{
+    display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line);
+  }
+  .module-row:last-child{border-bottom:none;}
+  .check{
+    width:26px;height:26px;border-radius:50%;flex:none;border:2px solid var(--line);
+    display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;transition:.15s;
+  }
+  .check.done{background:var(--ok);border-color:var(--ok);color:#fff;}
+  .module-row .m-title{font-weight:600;font-size:13.5px;}
+  .module-row .m-desc{font-size:11.5px;color:var(--muted);margin-top:2px;}
+  .module-row .m-xp{margin-left:auto;font-family:'JetBrains Mono';font-size:11px;color:var(--azul-atlantico);flex:none;align-self:flex-start;}
+
+  /* Tables (notas) */
+  table{width:100%;border-collapse:collapse;font-size:12.5px;}
+  th,td{padding:11px 10px;text-align:left;border-bottom:1px solid var(--line);}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600;}
+  td.num, th.num{font-family:'JetBrains Mono';}
+  .pill{padding:3px 9px;border-radius:999px;font-size:11px;font-weight:600;display:inline-block;}
+  .pill.ok{background:var(--ok-100);color:var(--ok);}
+  .pill.warn{background:var(--warn-100);color:var(--warn);}
+  .pill.risk{background:var(--risk-100);color:var(--risk);}
+
+  .own-grade-card{display:flex;flex-direction:column;gap:10px;}
+  .bar-track{height:8px;background:var(--bg);border-radius:999px;overflow:hidden;}
+  .bar-fill{height:100%;background:var(--azul-atlantico);border-radius:999px;}
+
+  /* ---------- Tarefas (upload / submissão) ---------- */
+  .task-card{border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;}
+  .task-card + .task-card{margin-top:12px;}
+  .task-head{display:flex;align-items:flex-start;gap:12px;justify-content:space-between;flex-wrap:wrap;}
+  .task-info .t-subject{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--azul-atlantico);}
+  .task-info .t-title{font-weight:700;font-size:14.5px;margin-top:2px;}
+  .task-info .t-desc{font-size:12px;color:var(--muted);margin-top:4px;max-width:520px;}
+  .task-due{font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .task-due b{color:var(--ink);}
+  .task-status{padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;flex:none;}
+  .task-status.pendente{background:var(--warn-100);color:var(--warn);}
+  .task-status.enviado{background:var(--ok-100);color:var(--ok);}
+  .task-status.atrasado{background:var(--risk-100);color:var(--risk);}
+
+  .task-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+  .dl-btn{
+    all:unset;display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;color:var(--azul-atlantico);
+    background:var(--blue-100);padding:8px 13px;border-radius:10px;cursor:pointer;transition:.15s;
+  }
+  .dl-btn:hover{background:#CBE5F1;}
+  .dl-btn svg{width:14px;height:14px;flex:none;}
+
+  .upload-zone{
+    border:1.5px dashed #B9C3D6;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;
+    background:var(--bg);cursor:pointer;transition:.15s;
+  }
+  .upload-zone:hover{border-color:var(--azul-atlantico);background:var(--blue-100);}
+  .upload-zone.dragover{border-color:var(--azul-atlantico);background:var(--blue-100);}
+  .upload-zone .u-icon{
+    width:36px;height:36px;border-radius:10px;background:var(--card);border:1px solid var(--line);flex:none;
+    display:flex;align-items:center;justify-content:center;font-size:16px;
+  }
+  .upload-zone .u-text{font-size:12px;font-weight:600;}
+  .upload-zone .u-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:1px;}
+  .upload-zone input[type=file]{display:none;}
+
+  .submitted-file{
+    display:flex;align-items:center;gap:10px;background:var(--ok-100);border-radius:12px;padding:10px 14px;font-size:12px;
+  }
+  .submitted-file .f-icon{font-size:16px;}
+  .submitted-file .f-name{font-weight:700;color:var(--ok);}
+  .submitted-file .f-meta{color:var(--muted);font-size:11px;}
+  .submitted-file .f-remove{
+    all:unset;margin-left:auto;cursor:pointer;font-size:11px;color:var(--risk);font-weight:600;padding:4px 8px;border-radius:8px;
+  }
+  .submitted-file .f-remove:hover{background:#FBE1DD;}
+
+  .downloads-strip{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+
+  /* ---------- Notas por semestre (accordion) ---------- */
+  .semester-block + .semester-block{margin-top:22px;}
+  .semester-head{display:flex;align-items:baseline;gap:10px;margin-bottom:10px;}
+  .semester-head h4{margin:0;font-size:14px;font-family:'Space Grotesk';}
+  .semester-head span{font-size:11.5px;color:var(--muted);}
+  .grade-accordion{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);}
+  .grade-row{
+    display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;border-bottom:1px solid var(--line);transition:.15s;
+  }
+  .grade-accordion .grade-row:last-child{border-bottom:none;}
+  .grade-accordion .grade-item:last-child .grade-row{border-bottom:none;}
+  .grade-row:hover{background:var(--bg);}
+  .grade-row .g-name{font-weight:600;font-size:13px;flex:1;min-width:140px;}
+  .grade-row .g-nota{font-family:'JetBrains Mono';font-size:13px;font-weight:700;color:var(--azul-atlantico);width:52px;text-align:right;}
+  .grade-row .g-freq{font-family:'JetBrains Mono';font-size:12px;color:var(--muted);width:52px;text-align:right;}
+  .grade-row .chevron{width:16px;height:16px;flex:none;transition:transform .18s;color:var(--muted);}
+  .grade-item.open .chevron{transform:rotate(180deg);}
+  .grade-detail{max-height:0;overflow:hidden;transition:max-height .22s ease;background:var(--bg);}
+  .grade-item.open .grade-detail{max-height:600px;}
+  .grade-detail-in{padding:14px 16px 16px;}
+  .comp-row{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line);font-size:12px;}
+  .comp-row:last-child{border-bottom:none;}
+  .comp-row .c-label{flex:1;font-weight:500;}
+  .comp-row .c-weight{font-size:10.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:6px;padding:1px 6px;}
+  .comp-row .c-score{font-family:'JetBrains Mono';font-weight:700;width:64px;text-align:right;}
+  .comp-note{font-size:11px;color:var(--muted);margin-top:8px;}
+
+  /* Ranking */
+  .rank-row{display:flex;align-items:center;gap:14px;padding:12px 6px;border-bottom:1px solid var(--line);}
+  .rank-row:last-child{border-bottom:none;}
+  .rank-pos{width:26px;height:26px;border-radius:8px;background:var(--bg);display:flex;align-items:center;justify-content:center;font-family:'Space Grotesk';font-weight:700;font-size:12px;color:var(--azul-atlantico);flex:none;}
+  .rank-row.top1 .rank-pos{background:var(--azul-atlantico);color:#fff;}
+  .rank-row.me{background:var(--blue-100);border-radius:10px;}
+  .rank-name{font-weight:600;font-size:13px;}
+  .rank-sub{font-size:11px;color:var(--muted);}
+  .rank-freq{margin-left:auto;font-family:'JetBrains Mono';font-size:12px;color:var(--azul-atlantico);flex:none;text-align:right;}
+  .rank-freq .xp-sub{display:block;font-size:10px;color:var(--muted);font-weight:400;}
+
+  .empty-note{font-size:12px;color:var(--muted);padding:10px 2px;}
+
+  @media (max-width:760px){
+    .sidebar{position:fixed;left:-260px;transition:.2s;z-index:20;}
+    .sidebar.open{left:0;}
+    .content{padding:18px 16px 50px;}
+    .week-grid{grid-template-columns:80px repeat(5,minmax(96px,1fr));overflow-x:auto;}
+    .topbar{padding:14px 16px;}
+  }
+  .menu-btn{display:none;}
+  @media (max-width:760px){
+    .menu-btn{display:flex;all:unset;padding:6px;border-radius:8px;background:var(--bg);cursor:pointer;}
+  }
+
+  /* Toast (feedback de download/upload) */
+  .toast{
+    position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--navy-900);color:#fff;padding:11px 18px;border-radius:12px;font-size:12.5px;font-weight:600;
+    box-shadow:0 12px 30px rgba(21,30,51,.28);z-index:50;opacity:0;pointer-events:none;transition:.22s;
+    display:flex;align-items:center;gap:8px;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ========================================================= */
+  /* ---------- Tela de login (mesma identidade visual) ---------- */
+  /* ========================================================= */
+  #loginScreen{
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 12% 15%, rgba(99,193,208,.16), transparent 40%),
+      radial-gradient(circle at 88% 82%, rgba(0,110,170,.14), transparent 45%),
+      var(--bg);
+    display:flex;align-items:center;justify-content:center;padding:24px;
+  }
+  .login-wrap{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;}
+
+  .logo-block{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:30px;}
+  .logo-block .atom-mark{width:72px;height:72px;flex:none;filter:drop-shadow(0 10px 20px rgba(21,30,51,.16));}
+  .logo-block .brand-text{text-align:center;line-height:1.2;}
+  .logo-block .brand-text .b1{font-family:'Space Grotesk';font-weight:700;font-size:22px;color:var(--navy-900);}
+  .logo-block .brand-text .b2{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1.4px;margin-top:2px;}
+
+  .login-card{
+    width:100%;background:var(--card);border:1px solid var(--line);border-radius:20px;
+    padding:30px 28px 26px;box-shadow:0 20px 44px rgba(21,30,51,.08);
+  }
+  .login-card h2{margin:0 0 4px;font-size:18px;}
+  .login-card .sub{font-size:12.5px;color:var(--muted);margin:0 0 22px;}
+
+  .field{margin-bottom:16px;}
+  .field label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+  .input-shell{
+    display:flex;align-items:center;gap:10px;border:1.5px solid var(--line);border-radius:12px;
+    padding:0 14px;background:var(--bg);transition:.15s;
+  }
+  .input-shell:focus-within{border-color:var(--azul-atlantico);background:#fff;box-shadow:0 0 0 3px var(--blue-100);}
+  .input-shell svg{width:16px;height:16px;flex:none;color:var(--muted);}
+  .input-shell input{all:unset;flex:1;padding:12px 0;font-size:13.5px;color:var(--ink);font-family:'Inter';}
+  .input-shell .toggle-pass{all:unset;display:flex;align-items:center;cursor:pointer;color:var(--muted);padding:4px;}
+  .input-shell .toggle-pass:hover{color:var(--azul-atlantico);}
+
+  .row-between{display:flex;align-items:center;justify-content:space-between;margin:2px 0 20px;}
+  .remember{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);}
+  .remember input{accent-color:var(--azul-atlantico);width:14px;height:14px;}
+  .forgot{font-size:12px;color:var(--azul-atlantico);font-weight:600;text-decoration:none;}
+  .forgot:hover{text-decoration:underline;}
+
+  .btn-entrar{
+    all:unset;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
+    background:var(--azul-atlantico);color:#fff;font-weight:700;font-size:13.5px;
+    padding:13px;border-radius:12px;transition:.15s;box-sizing:border-box;
+  }
+  .btn-entrar:hover{background:#005A8C;}
+  .btn-entrar:active{transform:translateY(1px);}
+  .btn-entrar svg{width:16px;height:16px;}
+
+  .error-msg{
+    display:none;align-items:center;gap:8px;background:var(--risk-100);color:var(--risk);
+    font-size:12px;font-weight:600;padding:10px 12px;border-radius:10px;margin-bottom:16px;
+  }
+  .error-msg.show{display:flex;}
+  .error-msg svg{width:15px;height:15px;flex:none;}
+  .field.invalid .input-shell{border-color:var(--risk);background:var(--risk-100);}
+
+  .footer-note{margin-top:22px;font-size:11px;color:var(--muted);text-align:center;}
+
+  .success-screen{
+    display:none;width:100%;max-width:380px;flex-direction:column;align-items:center;text-align:center;
+    animation:fade .3s ease;
+  }
+  .success-screen.show{display:flex;}
+  .success-check{
+    width:64px;height:64px;border-radius:50%;background:var(--ok-100);color:var(--ok);
+    display:flex;align-items:center;justify-content:center;margin-bottom:18px;
+  }
+  .success-check svg{width:30px;height:30px;}
+  .success-screen h2{margin:0 0 6px;font-size:19px;}
+  .success-screen p{margin:0 0 22px;font-size:13px;color:var(--muted);}
+  .btn-continuar{
+    all:unset;display:flex;align-items:center;gap:8px;background:var(--navy-900);color:#fff;font-weight:700;
+    font-size:13px;padding:12px 22px;border-radius:12px;cursor:pointer;
+  }
+  .btn-continuar:hover{background:#141F44;}
+</style>
+
+<style>
+  /* ========================================================= */
+  /* ---------- Painel do Monitor ---------- */
+  /* ========================================================= */
+  .stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;}
+  .stat-card{
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;
+    display:flex;flex-direction:column;gap:6px;
+  }
+  .stat-card .stat-icon{font-size:18px;}
+  .stat-card b{font-family:'Space Grotesk';font-size:24px;}
+  .stat-card span{font-size:11.5px;color:var(--muted);}
+
+  .form-card{display:flex;flex-direction:column;gap:14px;}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+  .m-field label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+  .m-field .input-shell select,
+  .m-field .input-shell input{all:unset;flex:1;padding:11px 0;font-size:13px;color:var(--ink);font-family:'Inter';width:100%;}
+  .m-field .input-shell{padding:0 12px;}
+  .m-field textarea{
+    all:unset;display:block;width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;
+    padding:11px 12px;font-size:13px;font-family:'Inter';background:var(--bg);min-height:64px;
+  }
+  .m-field textarea:focus{border-color:var(--azul-atlantico);background:#fff;}
+
+  .btn-primary{
+    all:unset;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--azul-atlantico);color:#fff;font-weight:700;font-size:13px;
+    padding:11px 20px;border-radius:12px;cursor:pointer;transition:.15s;
+  }
+  .btn-primary:hover{background:#005A8C;}
+  .btn-secondary{
+    all:unset;display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    background:var(--bg);border:1px solid var(--line);color:var(--ink);font-weight:600;font-size:12.5px;
+    padding:9px 16px;border-radius:11px;cursor:pointer;transition:.15s;
+  }
+  .btn-secondary:hover{background:#EAEEF3;}
+
+  .roster-row{
+    display:flex;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);
+  }
+  .roster-row:last-child{border-bottom:none;}
+  .roster-row .r-name{font-weight:600;font-size:13px;flex:1;}
+  .roster-row .r-turma{font-size:11.5px;color:var(--muted);}
+  .present-toggle{
+    all:unset;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
+    padding:6px 12px;border-radius:999px;cursor:pointer;transition:.15s;
+  }
+  .present-toggle.present{background:var(--ok-100);color:var(--ok);}
+  .present-toggle.absent{background:var(--risk-100);color:var(--risk);}
+
+  .empty-hint{
+    border:1.5px dashed var(--line);border-radius:14px;padding:22px;text-align:center;
+    color:var(--muted);font-size:12.5px;
+  }
+
+  .class-row{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer;transition:.15s;}
+  .class-row:last-child{border-bottom:none;}
+  .class-row:hover{background:var(--bg);}
+  .class-row .c-date{font-family:'JetBrains Mono';font-size:11.5px;color:var(--muted);width:96px;flex:none;}
+  .class-row .c-subject{font-weight:600;font-size:13px;flex:1;}
+  .class-row .c-time{font-size:11.5px;color:var(--muted);width:150px;flex:none;}
+
+  .grade-input-field{
+    all:unset;width:60px;text-align:right;font-family:'JetBrains Mono';font-weight:700;font-size:12.5px;
+    border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--card);flex:none;
+  }
+  .grade-input-field:focus{border-color:var(--azul-atlantico);box-shadow:0 0 0 3px var(--blue-100);}
+  .grade-input-field:disabled{opacity:.4;background:var(--bg);}
+  .comp-row .present-toggle{flex:none;margin-left:auto;}
+</style>
+</head>
+<body>
+
+<!-- ===================== TELA DE LOGIN ===================== -->
+<div id="loginScreen">
+  <div class="login-wrap" id="loginWrap">
+    <div class="logo-block">
+      <div class="atom-mark">
+        <svg viewBox="0 0 40 40" fill="none">
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#006EAA" stroke-width="2" transform="rotate(0 20 20)"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#63C1D0" stroke-width="2" transform="rotate(60 20 20)"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#243574" stroke-width="2" transform="rotate(120 20 20)"/>
+          <circle cx="20" cy="20" r="6.5" fill="#fff" stroke="#E3E7ED" stroke-width="1"/>
+          <text x="20" y="24" font-family="Space Grotesk" font-size="10" font-weight="700" fill="#243574" text-anchor="middle">F</text>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="b1">Cursinho FEI</div>
+        <div class="b2">Conecta · Aluno</div>
+      </div>
+    </div>
+
+    <div class="login-card">
+      <h2>Entrar na plataforma</h2>
+      <p class="sub">Use seu e-mail e senha para acessar seu painel.</p>
+
+      <div class="error-msg" id="errorMsg">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+        <span id="errorText">E-mail ou senha incorretos.</span>
+      </div>
+
+      <form id="loginForm" novalidate>
+        <div class="field" id="userField">
+          <label for="email">E-mail</label>
+          <div class="input-shell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.7-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>
+            <input type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email" autocapitalize="none">
+          </div>
+        </div>
+
+        <div class="field" id="passField">
+          <label for="password">Senha</label>
+          <div class="input-shell">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2.4"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+            <input type="password" id="password" name="password" placeholder="Sua senha" autocomplete="current-password">
+            <button type="button" class="toggle-pass" id="togglePass" aria-label="Mostrar senha">
+              <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="row-between">
+          <label class="remember"><input type="checkbox" id="remember"> Lembrar de mim</label>
+          <a href="#" class="forgot" onclick="return false;">Esqueci minha senha</a>
+        </div>
+
+        <button type="submit" class="btn-entrar">
+          Entrar
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </form>
+    </div>
+
+    <div class="footer-note">© Cursinho FEI · Conecta</div>
+  </div>
+
+  <!-- Tela de sucesso (mock) -->
+  <div class="success-screen" id="successScreen">
+    <div class="success-check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>
+    </div>
+    <h2>Login realizado!</h2>
+    <p>Bem-vindo(a) de volta. Redirecionando para o seu painel.</p>
+    <button class="btn-continuar" id="btnContinuar">
+      Ir para o painel
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ===================== PAINEL (só aparece após login) ===================== -->
+<div class="shell" id="appShell" style="display:none;">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="atom-mark">
+        <svg viewBox="0 0 40 40" fill="none">
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#63C1D0" stroke-width="2" transform="rotate(0 20 20)"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#7FB8E6" stroke-width="2" transform="rotate(60 20 20)"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#7FB8E6" stroke-width="2" transform="rotate(120 20 20)"/>
+          <circle cx="20" cy="20" r="6.5" fill="#fff"/>
+          <text x="20" y="24" font-family="Space Grotesk" font-size="10" font-weight="700" fill="#243574" text-anchor="middle">F</text>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="b1">Cursinho FEI</div>
+        <div class="b2">Conecta · Aluno</div>
+      </div>
+    </div>
+
+    <div class="nav" id="nav">
+      <div class="section-label">Principal</div>
+      <button data-view="painel" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Painel
+      </button>
+      <button data-view="grade">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/></svg>
+        Grade de aulas
+      </button>
+      <button data-view="conteudos">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z"/><path d="M9 9h6M9 13h6"/></svg>
+        Conteúdos
+      </button>
+      <button data-view="tarefas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        Tarefas
+        <span id="tarefasPendingDot" style="display:none;margin-left:auto;width:7px;height:7px;border-radius:50%;background:var(--azul-esmeralda);"></span>
+      </button>
+      <button data-view="notas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+        Minhas notas
+      </button>
+      <button data-view="ranking">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10l-1 8a4 4 0 0 1-8 0L7 4Z"/><path d="M5 6H3v2a3 3 0 0 0 3 3M19 6h2v2a3 3 0 0 1-3 3"/></svg>
+        Ranking &amp; conquistas
+      </button>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="mascot-row">
+        <svg class="mascot-svg" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 18 Q24 4 32 12 Q40 4 44 18 Q36 14 32 20 Q28 14 20 18Z" fill="#fff" stroke="#1A2755" stroke-width="1.2"/>
+          <ellipse cx="32" cy="30" rx="15" ry="13" fill="#fff" stroke="#1A2755" stroke-width="1.2"/>
+          <path d="M14 34 Q6 30 8 44 Q14 40 18 36Z" fill="#C9D5EA" stroke="#1A2755" stroke-width="1"/>
+          <path d="M50 34 Q58 30 56 44 Q50 40 46 36Z" fill="#C9D5EA" stroke="#1A2755" stroke-width="1"/>
+          <circle cx="26" cy="29" r="4.2" fill="#241A12"/>
+          <circle cx="38" cy="29" r="4.2" fill="#241A12"/>
+          <circle cx="24.7" cy="27.3" r="1.3" fill="#fff"/>
+          <circle cx="36.7" cy="27.3" r="1.3" fill="#fff"/>
+          <path d="M28 34 L36 34 L32 41Z" fill="#F5B942" stroke="#1A2755" stroke-width="1"/>
+          <path d="M18 44 Q32 38 46 44 L46 51 Q32 47 18 51Z" fill="#006EAA" stroke="#1A2755" stroke-width="1"/>
+        </svg>
+        <div class="mascot-bubble" id="mascotBubble">Vamos lá!</div>
+      </div>
+      <div class="streak">🔥 <b id="streakVal">6 dias</b></div>
+      <button class="logout-btn" id="logoutBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151E33" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1 id="pageTitle">Painel</h1>
+          <div class="sub" id="pageSub">Sua central do Cursinho FEI</div>
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="user-chip">
+          <div class="rank-badge"><span class="num" id="topRankNum">#4</span><span class="lbl">rank</span></div>
+          <div class="user-meta">
+            <div class="name" id="alunoTopName">Aluno</div>
+            <div class="lvl" id="userLvl">— XP</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===================== PAINEL ===================== -->
+      <div class="view active" id="view-painel">
+        <div class="hero">
+          <div class="hero-rank">
+            <div class="big-pos" id="heroRankBig">#4</div>
+            <div class="pos-meta">sua posição no ranking geral<br>ordenado por <b>presença</b></div>
+          </div>
+          <div class="hero-stats" style="margin-top:16px;">
+            <div class="hero-stat"><b id="heroXp">620</b><span>XP total</span></div>
+            <div class="hero-stat"><b id="heroFreq">92%</b><span>Presença</span></div>
+            <div class="hero-stat"><b id="heroStreak">🔥 6</b><span>Dias seguidos</span></div>
+          </div>
+        </div>
+
+        <div class="section-title"><h3>Hoje no cursinho</h3><span class="hint" id="todayLabel">Terça-feira</span></div>
+        <div class="card">
+          <div class="today-list" id="todayList"></div>
+        </div>
+
+        <div class="section-title"><h3>Suas conquistas</h3><span class="hint">Toque em Ranking &amp; conquistas para ver todas</span></div>
+        <div class="badge-strip" id="badgeStrip"></div>
+
+        <div class="section-title"><h3>Resumo rápido</h3></div>
+        <div class="grid grid-3" id="quickStats"></div>
+      </div>
+
+      <!-- ===================== GRADE ===================== -->
+      <div class="view" id="view-grade">
+        <p class="empty-note" style="margin-bottom:14px;">Semana completa, de segunda a domingo. Seu dia atual aparece destacado e uma tarefa com prazo pendente aparece marcada na matéria correspondente.</p>
+        <div class="week-grid" id="weekGrid"></div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">
+          <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);"><span style="width:12px;height:12px;border-radius:4px;background:var(--warn-100);border:1px solid #F1D8A0;display:inline-block;"></span> Entrega pendente</div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);"><span style="width:12px;height:12px;border-radius:4px;background:var(--accent-100);display:inline-block;"></span> Hoje</div>
+        </div>
+      </div>
+
+      <!-- ===================== CONTEUDOS ===================== -->
+      <div class="view" id="view-conteudos">
+        <div id="subjectGridWrap">
+          <p class="empty-note" style="margin-bottom:14px;">Toque em uma matéria para abrir os conteúdos da sala: PDF da aula e lista de exercícios em PDF de cada tópico.</p>
+          <div class="subject-grid" id="subjectGrid"></div>
+        </div>
+        <div id="subjectDetailWrap" style="display:none;">
+          <div class="subject-detail-head">
+            <button class="back-btn" onclick="showSubjectGrid()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 18l-6-6 6-6"/></svg>
+              Todas as matérias
+            </button>
+          </div>
+          <div class="detail-cover" id="detailCover"></div>
+          <div class="card" id="subjectPanel"></div>
+        </div>
+      </div>
+
+      <!-- ===================== TAREFAS ===================== -->
+      <div class="view" id="view-tarefas">
+        <p class="empty-note" style="margin-bottom:14px;">Tarefas atribuídas pelo professor de cada matéria. Baixe o enunciado quando houver e envie sua resposta em PDF.</p>
+        <div id="tasksList"></div>
+      </div>
+
+      <!-- ===================== NOTAS ===================== -->
+      <div class="view" id="view-notas">
+        <div id="notasAluno"></div>
+      </div>
+
+      <!-- ===================== RANKING ===================== -->
+      <div class="view" id="view-ranking">
+        <div class="grid grid-2">
+          <div class="card">
+            <h3 style="margin-top:0;">Ranking do cursinho</h3>
+            <p class="empty-note" style="margin-top:-6px;">Ordenado por presença nas aulas. O XP de cada um aparece ao lado, mas quem decide a posição é a frequência.</p>
+            <div id="rankList"></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0;">Conquistas</h3>
+            <p class="empty-note" style="margin-top:-6px;">Desbloqueadas e as próximas na trilha.</p>
+            <div id="achList" style="display:flex;flex-direction:column;gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ===================== PAINEL DO MONITOR ===================== -->
+<div class="shell" id="appShellMonitor" style="display:none;">
+  <aside class="sidebar" id="sidebarMon">
+    <div class="brand">
+      <div class="atom-mark">
+        <svg viewBox="0 0 40 40" fill="none">
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#63C1D0" stroke-width="2" transform="rotate(0 20 20)"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#7FB8E6" stroke-width="2" transform="rotate(60 20 20)"/>
+          <ellipse cx="20" cy="20" rx="17" ry="7" stroke="#7FB8E6" stroke-width="2" transform="rotate(120 20 20)"/>
+          <circle cx="20" cy="20" r="6.5" fill="#fff"/>
+          <text x="20" y="24" font-family="Space Grotesk" font-size="10" font-weight="700" fill="#243574" text-anchor="middle">F</text>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="b1">Cursinho FEI</div>
+        <div class="b2">Conecta · Monitor</div>
+      </div>
+    </div>
+
+    <div class="nav" id="navMon">
+      <div class="section-label">Principal</div>
+      <button data-view="mon-alunos" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20c1.4-4 3.7-6 6.5-6s5.1 2 6.5 6"/><path d="M16.5 4.5a3.4 3.4 0 0 1 0 6.8M20 20c-.7-2.6-1.8-4.4-3.3-5.5"/></svg>
+        Cadastro de Alunos
+      </button>
+      <button data-view="mon-presenca">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 3v3M16 3v3"/><path d="M7.5 14.5l2 2 4-4.5"/></svg>
+        Presença
+      </button>
+      <button data-view="mon-materiais">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h11a3 3 0 0 1 3 3v13H7a3 3 0 0 1-3-3V4Z"/><path d="M9 9h6M9 13h6"/></svg>
+        Conteúdos Aula
+      </button>
+      <button data-view="mon-atividades">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        Atividades
+      </button>
+      <button data-view="mon-notas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h9l5 5v11a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 12h6M9 16h6M9 8h3"/></svg>
+        Notas
+      </button>
+      <button data-view="mon-relatorio">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Relatório
+      </button>
+    </div>
+
+    <div class="sidebar-foot">
+      <div class="streak" style="margin-bottom:2px;">👤 <b id="monName">Monitor</b></div>
+      <div class="streak-note" style="margin-top:0;">Turma responsável: <span id="monTurma">3ºA</span></div>
+      <button class="logout-btn" id="logoutBtnMon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
+        Sair
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="menu-btn" onclick="document.getElementById('sidebarMon').classList.toggle('open')">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#151E33" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+        </button>
+        <div>
+          <h1 id="pageTitleMon">Cadastro de Alunos</h1>
+          <div class="sub" id="pageSubMon">Cadastre e gerencie a turma</div>
+        </div>
+      </div>
+      <div class="top-right">
+        <div class="user-chip">
+          <div class="rank-badge"><span class="num">👤</span><span class="lbl">monitor</span></div>
+          <div class="user-meta">
+            <div class="name" id="monTopName">Monitor</div>
+            <div class="lvl">Monitor · Cursinho FEI</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===================== CADASTRO DE ALUNOS ===================== -->
+      <div class="view active" id="view-mon-alunos">
+        <div class="card form-card" style="margin-bottom:20px;">
+          <h3 style="margin:0;">Cadastrar novo aluno</h3>
+          <form id="alunoForm">
+            <div class="form-grid">
+              <div class="m-field">
+                <label for="alunoNome">Nome completo</label>
+                <div class="input-shell"><input type="text" id="alunoNome" placeholder="Nome completo do aluno" required></div>
+              </div>
+              <div class="m-field">
+                <label for="alunoNasc">Data de nascimento</label>
+                <div class="input-shell"><input type="text" id="alunoNasc" placeholder="dd/mm/aaaa"></div>
+              </div>
+              <div class="m-field">
+                <label for="alunoEscola">Escola atual</label>
+                <div class="input-shell"><input type="text" id="alunoEscola" placeholder="Ex: E.E. João XXIII"></div>
+              </div>
+              <div class="m-field">
+                <label for="alunoEmail">E-mail</label>
+                <div class="input-shell"><input type="email" id="alunoEmail" placeholder="aluno@email.com"></div>
+              </div>
+              <div class="m-field">
+                <label for="alunoTelefone">Telefone</label>
+                <div class="input-shell"><input type="text" id="alunoTelefone" placeholder="(11) 90000-0000"></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:6px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+              Cadastrar aluno
+            </button>
+          </form>
+        </div>
+
+        <div class="section-title"><h3>Alunos cadastrados</h3><span class="hint" id="alunosCount">0 alunos</span></div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Nome</th><th>Nascimento</th><th>Escola atual</th><th>E-mail</th><th>Telefone</th></tr></thead>
+            <tbody id="alunosTableBody"></tbody>
+          </table>
+          <p class="empty-note" style="padding-top:12px;">Por segurança, não é possível excluir um aluno cadastrado por aqui. Fale com a coordenação em caso de erro de cadastro.</p>
+        </div>
+      </div>
+
+      <!-- ===================== PRESENÇA ===================== -->
+      <div class="view" id="view-mon-presenca">
+        <div class="card form-card" style="margin-bottom:20px;">
+          <h3 style="margin:0;">Registrar aula e abrir chamada</h3>
+          <p class="empty-note" style="padding:0;">Data e dia da semana são preenchidos automaticamente, a partir de hoje.</p>
+          <form id="classForm">
+            <div class="form-grid">
+              <div class="m-field">
+                <label for="classSubject">Matéria</label>
+                <div class="input-shell"><select id="classSubject"></select></div>
+              </div>
+              <div class="m-field">
+                <label for="classDate">Data</label>
+                <div class="input-shell"><input type="text" id="classDate" readonly></div>
+              </div>
+              <div class="m-field">
+                <label for="classDay">Dia da semana</label>
+                <div class="input-shell"><input type="text" id="classDay" readonly></div>
+              </div>
+              <div class="m-field">
+                <label for="classTime">Horário</label>
+                <div class="input-shell">
+                  <select id="classTime">
+                    <option value="17h20 – 19h00">17h20 – 19h00</option>
+                    <option value="19h10 – 20h50">19h10 – 20h50</option>
+                  </select>
+                </div>
+              </div>
+              <div class="m-field">
+                <label for="classTurma">Turma</label>
+                <div class="input-shell">
+                  <select id="classTurma"><option>3ºA</option><option>3ºB</option><option>Extensivo</option></select>
+                </div>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:6px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+              Abrir chamada
+            </button>
+          </form>
+        </div>
+
+        <div class="card" id="attendanceCard" style="display:none;margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <h3 style="margin:0;" id="attendanceTitle">Chamada</h3>
+            <button class="btn-primary" id="saveAttendanceBtn">Salvar chamada</button>
+          </div>
+          <div id="rosterList"></div>
+        </div>
+
+        <div class="section-title"><h3>Histórico de aulas</h3><span class="hint">Toque numa aula para ver ou editar a chamada</span></div>
+        <div class="card"><div id="classHistoryList"></div></div>
+      </div>
+
+      <!-- ===================== CONTEÚDOS AULA (PDFs) ===================== -->
+      <div class="view" id="view-mon-materiais">
+        <div class="card form-card" style="margin-bottom:20px;">
+          <h3 style="margin:0;">Enviar novo material em PDF</h3>
+          <p class="empty-note" style="padding:0;">O material enviado aparece imediatamente em Conteúdos, na visão do aluno.</p>
+          <form id="materialForm">
+            <div class="form-grid">
+              <div class="m-field">
+                <label for="matSubject">Matéria</label>
+                <div class="input-shell"><select id="matSubject"></select></div>
+              </div>
+              <div class="m-field">
+                <label for="matTipo">Tipo</label>
+                <div class="input-shell">
+                  <select id="matTipo"><option value="aula">PDF da aula</option><option value="lista">Lista de exercícios</option></select>
+                </div>
+              </div>
+              <div class="m-field">
+                <label for="matTitulo">Título do conteúdo</label>
+                <div class="input-shell"><input type="text" id="matTitulo" placeholder="Ex: Revisão para a prova"></div>
+              </div>
+            </div>
+            <div class="m-field" style="margin-top:14px;">
+              <label>Arquivo</label>
+              <label class="upload-zone" id="matUploadZone">
+                <span class="u-icon">⬆️</span>
+                <div><div class="u-text" id="matFileLabel">Toque para escolher o PDF</div><div class="u-sub">Ou arraste o arquivo aqui</div></div>
+                <input type="file" id="matArquivo" accept="application/pdf,.pdf">
+              </label>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:14px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+              Adicionar PDF
+            </button>
+          </form>
+        </div>
+
+        <div class="section-title"><h3>Materiais enviados por você</h3><span class="hint" id="materiaisCount">0 materiais</span></div>
+        <div class="card"><div id="materiaisList"></div></div>
+      </div>
+
+      <!-- ===================== ATIVIDADES ===================== -->
+      <div class="view" id="view-mon-atividades">
+        <div class="card form-card" style="margin-bottom:20px;">
+          <h3 style="margin:0;">Atribuir nova atividade</h3>
+          <p class="empty-note" style="padding:0;">A atividade aparece na hora em Tarefas e na Grade, na visão do aluno.</p>
+          <form id="taskForm">
+            <div class="form-grid">
+              <div class="m-field">
+                <label for="taskSubject">Matéria</label>
+                <div class="input-shell"><select id="taskSubject"></select></div>
+              </div>
+              <div class="m-field">
+                <label for="taskDay">Dia do prazo</label>
+                <div class="input-shell"><select id="taskDay"></select></div>
+              </div>
+              <div class="m-field">
+                <label for="taskHora">Horário do prazo</label>
+                <div class="input-shell"><input type="text" id="taskHora" placeholder="Ex: 23h59" value="23h59"></div>
+              </div>
+            </div>
+            <div class="m-field" style="margin-top:14px;">
+              <label for="taskTitulo">Título da atividade</label>
+              <div class="input-shell"><input type="text" id="taskTitulo" placeholder="Ex: Lista de exercícios — Trigonometria"></div>
+            </div>
+            <div class="m-field" style="margin-top:14px;">
+              <label for="taskDesc">Descrição</label>
+              <textarea id="taskDesc" placeholder="Instruções para o aluno..."></textarea>
+            </div>
+            <div class="m-field" style="margin-top:14px;">
+              <label>Anexo (PDF ou Excel — opcional)</label>
+              <label class="upload-zone" id="taskUploadZone">
+                <span class="u-icon">⬆️</span>
+                <div><div class="u-text" id="taskFileLabel">Toque para anexar o enunciado</div><div class="u-sub">Aceita PDF ou Excel (.xlsx / .xls)</div></div>
+                <input type="file" id="taskAnexo" accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+              </label>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:14px;">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg>
+              Atribuir atividade
+            </button>
+          </form>
+        </div>
+
+        <div class="section-title"><h3>Atividades atribuídas</h3><span class="hint" id="atividadesCount">0 atividades</span></div>
+        <p class="empty-note" style="padding:0 0 10px;">Toque numa atividade para ver quem entregou e lançar a nota de cada aluno.</p>
+        <div class="grade-accordion" id="atividadesAccordion"></div>
+      </div>
+
+      <!-- ===================== NOTAS ===================== -->
+      <div class="view" id="view-mon-notas">
+        <div class="card form-card" style="margin-bottom:20px;">
+          <h3 style="margin:0;">Lançar notas de avaliação</h3>
+          <p class="empty-note" style="padding:0;">Escolha a matéria e a avaliação — a lista traz todos os alunos cadastrados.</p>
+          <div class="form-grid">
+            <div class="m-field">
+              <label for="notaSubject">Matéria</label>
+              <div class="input-shell"><select id="notaSubject"></select></div>
+            </div>
+            <div class="m-field">
+              <label for="notaExame">Avaliação</label>
+              <div class="input-shell"><input type="text" id="notaExame" value="Prova 1" placeholder="Ex: Prova 1"></div>
+            </div>
+          </div>
+          <div id="notaAlunosList" style="margin-top:6px;"></div>
+          <button type="button" class="btn-primary" id="saveNotasBtn" style="margin-top:6px;align-self:flex-start;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg>
+            Salvar notas
+          </button>
+        </div>
+
+        <div class="section-title"><h3>Notas lançadas</h3><span class="hint" id="notasLancadasCount">0 registros</span></div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Aluno</th><th>Matéria</th><th>Avaliação</th><th class="num">Nota</th></tr></thead>
+            <tbody id="notasLancadasBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===================== RELATÓRIO ===================== -->
+      <div class="view" id="view-mon-relatorio">
+        <div class="stat-grid" style="margin-bottom:22px;">
+          <div class="stat-card"><span class="stat-icon">📚</span><b id="statAulas">0</b><span>Aulas dadas</span></div>
+          <div class="stat-card"><span class="stat-icon">⏱️</span><b id="statHoras">0h</b><span>Horas complementares acumuladas</span></div>
+          <div class="stat-card"><span class="stat-icon">🧑‍🎓</span><b id="statAlunos">0</b><span>Alunos cadastrados</span></div>
+          <div class="stat-card"><span class="stat-icon">📝</span><b id="statAtividades">0</b><span>Atividades atribuídas</span></div>
+        </div>
+        <div class="card" style="margin-bottom:20px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h3 style="margin:0 0 4px;">Relatório de aulas dadas</h3>
+              <p class="empty-note" style="padding:0;">Dia, matéria e horário de cada aula — base para as horas complementares.</p>
+            </div>
+            <button class="btn-primary" id="downloadReportBtn">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+              Baixar relatório (CSV)
+            </button>
+          </div>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Data</th><th>Dia</th><th>Matéria</th><th>Horário</th><th class="num">Duração</th><th>Turma</th><th class="num">Presença</th></tr></thead>
+            <tbody id="reportTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+/* ============ MOCK DATA (matérias, grade, tarefas, conteúdos) ============ */
+const groupColors = {
+  'Português':{accent:'#006EAA', light:'#CFE6F1'},
+  'Matemática':{accent:'#243574', light:'#D6DAEF'},
+  'Exatas':{accent:'#1B7A87', light:'#CFEFF3'},
+  'Biológicas':{accent:'#63C1D0', light:'#E1F5F8'},
+  'Humanas':{accent:'#7B7C7E', light:'#E7E7E8'},
+};
+const subjects = [
+  {id:'gram', name:'Gramática', tag:'Português', icon:'🔤'},
+  {id:'red',  name:'Redação', tag:'Português', icon:'✍️'},
+  {id:'lit',  name:'Literatura', tag:'Português', icon:'📖'},
+  {id:'alg',  name:'Álgebra', tag:'Matemática', icon:'➗'},
+  {id:'geo',  name:'Geometria', tag:'Matemática', icon:'📐'},
+  {id:'fis',  name:'Física', tag:'Exatas', icon:'⚛️'},
+  {id:'qui',  name:'Química', tag:'Exatas', icon:'🧪'},
+  {id:'bio',  name:'Biologia', tag:'Biológicas', icon:'🧬'},
+  {id:'his',  name:'História', tag:'Humanas', icon:'🏛️'},
+  {id:'geog', name:'Geografia', tag:'Humanas', icon:'🌍'},
+  {id:'fil',  name:'Filosofia/Sociologia', tag:'Humanas', icon:'🧠'},
+].map((s,i)=>({...s, ...groupColors[s.tag], pattern:i%3}));
+
+/* Semana completa (seg a dom), para que pendências de fim de semana também apareçam na grade.
+   Sáb e Dom não têm aula presencial, mas podem ter prazos de tarefa marcados. */
+const days = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const weekendIndex = [5,6];
+const slots = ['17h20 – 19h00','19h10 – 20h50'];
+// grade[dayIndex][slotIndex] = subject id or null
+const grade = [
+  ['gram','alg'],
+  ['fis','red'],
+  ['bio','geo'],
+  ['lit','qui'],
+  ['his','geog'],
+  [null,null],
+  [null,null],
+];
+const todayIndex = 1; // Terça, só para a demonstração
+
+/* ============ TAREFAS ============
+   Estrutura pensada para futura integração com o painel do professor:
+   cada tarefa nasce lá (subjectId, título, descrição, prazo, anexo do enunciado)
+   e a submissão do aluno (arquivo PDF) é o único campo que o aluno preenche. */
+const tasks = [
+  {
+    id:'t1', subjectId:'alg', title:'Lista de exercícios — Sistemas lineares',
+    description:'Resolver os 10 exercícios do PDF e enviar a resolução escaneada ou digitada em PDF.',
+    assignedFile:'Enunciado_Sistemas_Lineares.pdf', dueDayIndex:5, dueLabel:'Sáb · 18h00',
+    submission:null,
+  },
+  {
+    id:'t2', subjectId:'red', title:'Redação dissertativa-argumentativa',
+    description:'Tema: "Desafios da mobilidade urbana no Brasil". Mínimo de 25 linhas, seguindo a estrutura ENEM.',
+    assignedFile:'Proposta_Redacao_Mobilidade.pdf', dueDayIndex:6, dueLabel:'Dom · 23h59',
+    submission:null,
+  },
+  {
+    id:'t3', subjectId:'qui', title:'Lista de exercícios — Estequiometria',
+    description:'Entregar a resolução em PDF até o fim da aula de terça-feira.',
+    assignedFile:'Lista_Estequiometria.pdf', dueDayIndex:1, dueLabel:'Ter · 20h50',
+    submission:{fileName:'estequiometria_beatriz.pdf', submittedAt:'28/08 · 21h40'},
+  },
+  {
+    id:'t4', subjectId:'bio', title:'Resumo — Genética mendeliana',
+    description:'Produzir um resumo esquemático (1 a 2 páginas) sobre a 1ª e 2ª leis de Mendel.',
+    assignedFile:null, dueDayIndex:3, dueLabel:'Qui · 19h00',
+    submission:null,
+  },
+];
+function tasksDueOn(dayIndex){ return tasks.filter(t=>t.dueDayIndex===dayIndex); }
+
+function mats(aulaLabel, listaLabel){ return [{type:'aula',label:aulaLabel},{type:'lista',label:listaLabel}]; }
+const modules = {
+  gram:[['Concordância verbal e nominal','Regras essenciais + pegadinhas de prova', mats('PDF da aula · Concordância','Lista de exercícios 1 (PDF)')],['Crase na prática','Quando usar e quando não usar', mats('PDF da aula · Crase','Lista de exercícios 2 (PDF)')],['Regência','Verbal e nominal, com exercícios', mats('PDF da aula · Regência','Lista de exercícios 3 (PDF)')]],
+  red:[['Estrutura dissertativa-argumentativa','Introdução, desenvolvimento e conclusão', mats('PDF da aula · Estrutura ENEM','Lista de exercícios 1 (PDF)')],['Repertório sociocultural','Como usar sem parecer decorado', mats('PDF da aula · Repertório','Lista de exercícios 2 (PDF)')],['Correção coletiva','Redações da turma comentadas', mats('PDF da aula · Correção','Lista de exercícios 3 (PDF)')]],
+  lit:[['Modernismo brasileiro','1ª, 2ª e 3ª fases', mats('PDF da aula · Modernismo','Lista de exercícios 1 (PDF)')],['Realismo e Naturalismo','Machado de Assis em foco', mats('PDF da aula · Realismo','Lista de exercícios 2 (PDF)')],['Poesia contemporânea','Leitura guiada', mats('PDF da aula · Poesia','Lista de exercícios 3 (PDF)')]],
+  alg:[['Funções do 1º e 2º grau','Gráficos e raízes', mats('PDF da aula · Funções','Lista de exercícios 1 (PDF)')],['Sistemas lineares','Métodos de resolução', mats('PDF da aula · Sistemas','Lista de exercícios 2 (PDF)')],['Progressões','PA e PG aplicadas ao Enem', mats('PDF da aula · Progressões','Lista de exercícios 3 (PDF)')]],
+  geo:[['Áreas e perímetros','Figuras planas', mats('PDF da aula · Áreas','Lista de exercícios 1 (PDF)')],['Geometria espacial','Prismas e pirâmides', mats('PDF da aula · Espacial','Lista de exercícios 2 (PDF)')],['Trigonometria no triângulo retângulo','Seno, cosseno e tangente', mats('PDF da aula · Trigonometria','Lista de exercícios 3 (PDF)')]],
+  fis:[['Cinemática','MU e MUV', mats('PDF da aula · Cinemática','Lista de exercícios 1 (PDF)')],['Leis de Newton','Aplicações práticas', mats('PDF da aula · Newton','Lista de exercícios 2 (PDF)')],['Energia e trabalho','Conservação de energia', mats('PDF da aula · Energia','Lista de exercícios 3 (PDF)')]],
+  qui:[['Estequiometria','Cálculos com mol', mats('PDF da aula · Estequiometria','Lista de exercícios 1 (PDF)')],['Ligações químicas','Iônica, covalente e metálica', mats('PDF da aula · Ligações','Lista de exercícios 2 (PDF)')],['Química orgânica I','Funções orgânicas', mats('PDF da aula · Orgânica I','Lista de exercícios 3 (PDF)')]],
+  bio:[['Citologia','Estrutura e função celular', mats('PDF da aula · Citologia','Lista de exercícios 1 (PDF)')],['Genética mendeliana','1ª e 2ª leis de Mendel', mats('PDF da aula · Genética','Lista de exercícios 2 (PDF)')],['Ecologia','Cadeias e teias alimentares', mats('PDF da aula · Ecologia','Lista de exercícios 3 (PDF)')]],
+  his:[['Brasil república','Da proclamação à redemocratização', mats('PDF da aula · Brasil república','Lista de exercícios 1 (PDF)')],['Guerra Fria','Contexto e desdobramentos', mats('PDF da aula · Guerra Fria','Lista de exercícios 2 (PDF)')],['Revolução Industrial','Causas e impactos sociais', mats('PDF da aula · Rev. Industrial','Lista de exercícios 3 (PDF)')]],
+  geog:[['Geopolítica atual','Conflitos e blocos econômicos', mats('PDF da aula · Geopolítica','Lista de exercícios 1 (PDF)')],['Climatologia','Fenômenos e impactos', mats('PDF da aula · Climatologia','Lista de exercícios 2 (PDF)')],['Urbanização brasileira','Processos e desigualdades', mats('PDF da aula · Urbanização','Lista de exercícios 3 (PDF)')]],
+  fil:[['Ética e cidadania','Debates contemporâneos', mats('PDF da aula · Ética','Lista de exercícios 1 (PDF)')],['Contrato social','Hobbes, Locke e Rousseau', mats('PDF da aula · Contrato social','Lista de exercícios 2 (PDF)')],['Movimentos sociais','Sociologia aplicada ao Enem', mats('PDF da aula · Mov. sociais','Lista de exercícios 3 (PDF)')]],
+};
+
+/* ============ COMPOSIÇÃO DE NOTAS ============
+   Estrutura flexível: cada matéria define sua própria matriz de avaliação por semestre
+   (nome do item + peso + nota), pensada para ser configurada pelo professor no painel docente.
+   O aluno só visualiza o resultado — o drill-down expande exatamente o que foi configurado. */
+function buildComposition(seed, subjectName){
+  const isRed = subjectName === 'Redação';
+  if(isRed){
+    return {
+      1:[
+        {label:'Redação 1', weight:'peso 3', score:8.2, max:10},
+        {label:'Redação 2', weight:'peso 3', score:7.6, max:10},
+        {label:'Participação em sala', weight:'peso 1', score:9.0, max:10},
+      ],
+      2:[
+        {label:'Redação 3', weight:'peso 3', score:8.5, max:10},
+        {label:'Redação 4', weight:'peso 3', score:8.8, max:10},
+        {label:'Participação em sala', weight:'peso 1', score:9.5, max:10},
+      ],
+    };
+  }
+  const mk = (s)=>({
+    1:[
+      {label:'Prova 1', weight:'peso 4', score: clamp10(s+0.4), max:10},
+      {label:'Lista de exercícios', weight:'peso 2', score: clamp10(s+1.1), max:10},
+      {label:'Prova 2', weight:'peso 4', score: clamp10(s-0.2), max:10},
+    ],
+    2:[
+      {label:'Prova 3', weight:'peso 4', score: clamp10(s+0.6), max:10},
+      {label:'Trabalho em grupo', weight:'peso 2', score: clamp10(s+0.9), max:10},
+      {label:'Prova final', weight:'peso 4', score: clamp10(s), max:10},
+    ],
+  });
+  return mk(seed);
+}
+function clamp10(n){ return Math.max(0, Math.min(10, Math.round(n*10)/10)); }
+const gradeComposition = {};
+subjects.forEach((s,i)=>{
+  const seed = 6.5 + (i%5)*0.5;
+  gradeComposition[s.id] = buildComposition(seed, s.name);
+});
+function semesterAverage(items){
+  const weights = items.map(it=> parseFloat(it.weight.replace(/[^\d.]/g,'')) || 1);
+  const totalW = weights.reduce((a,b)=>a+b,0);
+  const sum = items.reduce((a,it,idx)=>a+it.score*weights[idx],0);
+  return Math.round((sum/totalW)*10)/10;
+}
+
+/* Presença é o que ordena o ranking; XP é mostrado como informação extra.
+   Mesma lista é usada pelo monitor para cadastro de alunos e chamada de presença.
+   Agora vem do Supabase (tabela `alunos` / view `ranking_alunos`) — ver loadStudents(). */
+let students = [];
+
+const badgesAll = [
+  {icon:'🔥', name:'Sequência de 5 dias', unlocked:true},
+  {icon:'✍️', name:'Redação nota 900+', unlocked:true},
+  {icon:'📐', name:'Mestre da Geometria', unlocked:true},
+  {icon:'🧪', name:'10 exercícios de Química', unlocked:false},
+  {icon:'🏆', name:'Top 3 do mês em presença', unlocked:false},
+  {icon:'📚', name:'100% de presença no mês', unlocked:false},
+];
+
+/* ============ XP POR SEQUÊNCIA DE PRESENÇA ============
+   Quanto mais dias seguidos sem faltar, mais XP a aula vale.
+   Ao faltar 1 aula, a sequência zera e o XP volta a crescer aos poucos. */
+const xpTiers = [
+  {min:0, max:2,  xp:10, label:'Começando'},
+  {min:3, max:5,  xp:15, label:'Pegando ritmo'},
+  {min:6, max:9,  xp:20, label:'Sequência forte'},
+  {min:10, max:Infinity, xp:25, label:'Imparável'},
+];
+function tierForStreak(streak){
+  return xpTiers.find(t => streak>=t.min && streak<=t.max);
+}
+const mascotPhrases = {
+  'Começando':'Vamos começar a sequência!',
+  'Pegando ritmo':'Boa, não solta agora!',
+  'Sequência forte':'Você está voando alto! 🦅',
+  'Imparável':'Ninguém te para! 🔥',
+};
+
+/* ============ MONITOR ============
+   Aulas realmente dadas pelo monitor (histórico), usadas para calcular horas complementares
+   e gerar o relatório. Cada chamada de presença fica registrada em `attendance[classId]`. */
+const monitorProfile = { name:'', turma:'' }; // preenchido após o login, a partir da tabela `monitores`
+let uidCounter = 1000;
+function newId(prefix){ return prefix + (uidCounter++); }
+
+let monitorClasses = [
+  {id:'c1', date:'11/08', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+  {id:'c2', date:'11/08', day:'TER', subjectId:'red', time:'19h10 – 20h50', duration:1.5, turma:'3ºA'},
+  {id:'c3', date:'12/08', day:'QUA', subjectId:'bio', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+  {id:'c4', date:'18/08', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+  {id:'c5', date:'18/08', day:'TER', subjectId:'red', time:'19h10 – 20h50', duration:1.5, turma:'3ºA'},
+  {id:'c6', date:'19/08', day:'QUA', subjectId:'bio', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+  {id:'c7', date:'25/08', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+  {id:'c8', date:'26/08', day:'QUA', subjectId:'bio', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+  {id:'c9', date:'01/09', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
+];
+// attendance[classId] = { studentId: true (presente) | false (falta) }
+let attendance = {
+  c1: {s1:true,s2:true,s3:true,s4:false,s5:true,s6:true,s7:false},
+  c2: {s1:true,s2:true,s3:true,s4:true,s5:true,s6:false,s7:false},
+  c3: {s1:true,s2:true,s3:false,s4:true,s5:true,s6:true,s7:true},
+};
+let currentAttendanceClassId = null;
+
+/* ============ SUPABASE ============ */
+const SUPABASE_URL = 'https://yhclkyjdxrqtwjntflik.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_Bb-jyMTb-JuIEOIjXB5uPQ_FsETXJG8';
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let myAlunoId = null; // id do aluno logado, usado para marcar "você" na lista/ranking
+
+function formatDateBR(isoDate){
+  const [y,m,d] = isoDate.split('-');
+  return `${d}/${m}/${y}`;
+}
+function parseDateBRtoISO(str){
+  const m = (str||'').trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return null;
+  return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+}
+function mapAlunoRow(row){
+  return {
+    id: row.id,
+    name: row.nome_completo,
+    birthDate: row.data_nascimento ? formatDateBR(row.data_nascimento) : '',
+    school: row.escola_atual || '',
+    email: row.email || '',
+    phone: row.telefone || '',
+    freq: Number(row.frequencia) || 0,
+    xp: Number(row.xp) || 0,
+    streak: Number(row.streak) || 0,
+    media: Number(row.media) || 0,
+    me: myAlunoId ? row.id === myAlunoId : false,
+  };
+}
+
+/* Descobre se o e-mail logado pertence a um monitor ou a um aluno, consultando
+   as tabelas de perfil criadas no Supabase, e preenche monitorProfile / myAlunoId. */
+async function resolveRoleAndProfile(email){
+  const { data: monitor } = await supabase.from('monitores').select('*').eq('email', email).maybeSingle();
+  if(monitor){
+    monitorProfile.name = monitor.nome;
+    monitorProfile.turma = monitor.turma_responsavel || '';
+    myAlunoId = null;
+    return 'monitor';
+  }
+  const { data: aluno } = await supabase.from('alunos').select('*').eq('email', email).maybeSingle();
+  if(aluno){
+    myAlunoId = aluno.id;
+    return 'aluno';
+  }
+  return null;
+}
+
+/* Monitor enxerga a tabela `alunos` completa (nome, contato, notas...).
+   Aluno enxerga a view `ranking_alunos` (sem e-mail/telefone/nascimento dos colegas). */
+async function loadStudents(role){
+  const table = role === 'monitor' ? 'alunos' : 'ranking_alunos';
+  const { data, error } = await supabase.from(table).select('*');
+  if(error){
+    console.error(error);
+    showToast('⚠ Erro ao carregar alunos');
+    students = [];
+    return;
+  }
+  students = (data || []).map(mapAlunoRow).sort((a,b)=> b.freq - a.freq);
+}
+
+async function initAfterLogin(role){
+  await loadStudents(role);
+
+  if(role === 'aluno'){
+    me = students.find(s=>s.me) || null;
+    if(!me){
+      showToast('⚠ Não foi possível carregar seu perfil de aluno.');
+      return;
+    }
+    const topName = document.getElementById('alunoTopName');
+    if(topName) topName.textContent = me.name;
+    renderHeader();
+    renderToday();
+    renderBadgeStrip();
+    renderQuickStats();
+    renderWeekGrid();
+    renderConteudos();
+    renderTasks();
+    renderNotas();
+    renderRanking();
+  } else if(role === 'monitor'){
+    initMonitor();
+  }
+}
+
+/* ============ STATE ============ */
+let currentSubject = 'gram';
+const completedModules = new Set(['gram-0','red-0','alg-0']); // demo: módulos já concluídos
+let me = null; // aluno logado — preenchido em initAfterLogin()
+
+/* ============ NAV ============ */
+const titles = {
+  painel:['Painel','Sua central do Cursinho FEI'],
+  grade:['Grade de aulas','Segunda a domingo, com pendências destacadas'],
+  conteudos:['Conteúdos','Organizados por matéria'],
+  tarefas:['Tarefas','Entregas atribuídas pelo professor'],
+  notas:['Minhas notas','Só você vê os seus dados aqui'],
+  ranking:['Ranking & conquistas','Ordenado pela sua presença nas aulas'],
+};
+document.getElementById('nav').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-view]');
+  if(!btn) return;
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#appShell .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  const t = titles[btn.dataset.view];
+  document.getElementById('pageTitle').textContent = t[0];
+  document.getElementById('pageSub').textContent = t[1];
+  document.getElementById('sidebar').classList.remove('open');
+});
+
+/* ============ PAINEL ============ */
+function renderHeader(){
+  const rank = [...students].sort((a,b)=>b.freq-a.freq).findIndex(s=>s.me)+1;
+  document.getElementById('topRankNum').textContent = '#'+rank;
+  document.getElementById('heroRankBig').textContent = '#'+rank;
+  document.getElementById('userLvl').textContent = me.xp+' XP';
+  document.getElementById('heroXp').textContent = me.xp;
+  document.getElementById('heroFreq').textContent = me.freq+'%';
+  document.getElementById('heroStreak').textContent = '🔥 '+me.streak;
+  document.getElementById('streakVal').textContent = me.streak+' dias';
+  const tier = tierForStreak(me.streak);
+  document.getElementById('mascotBubble').textContent = mascotPhrases[tier.label];
+}
+
+function renderToday(){
+  document.getElementById('todayLabel').textContent = days[todayIndex] + '-feira';
+  const list = document.getElementById('todayList');
+  list.innerHTML = '';
+  grade[todayIndex].forEach((sid, i)=>{
+    const div = document.createElement('div');
+    div.className='today-item';
+    if(sid){
+      const s = subjects.find(x=>x.id===sid);
+      const pending = tasksDueOn(todayIndex).find(t=>t.subjectId===sid && !t.submission);
+      div.innerHTML = `<span class="today-time">${slots[i]}</span><span class="subj">${s.name}</span>${pending?`<span class="pending-flag">📌 Entrega hoje</span>`:''}<span class="who">${s.tag}</span>`;
+      list.appendChild(div);
+    } else if(i < grade[todayIndex].filter(x=>x).length + 1){
+      // não mostra slots vazios além do último preenchido
+    }
+  });
+  if(!list.children.length){
+    list.innerHTML = '<div class="empty-note">Sem aulas hoje.</div>';
+  }
+}
+
+function renderBadgeStrip(){
+  const strip = document.getElementById('badgeStrip');
+  strip.innerHTML = badgesAll.map(b=>`
+    <div class="badge-pill ${b.unlocked?'':'locked'}">${b.icon} ${b.name}</div>
+  `).join('');
+}
+
+function renderQuickStats(){
+  const grid = document.getElementById('quickStats');
+  const avgFreq = Math.round(students.reduce((a,s)=>a+s.freq,0)/students.length);
+  grid.innerHTML = `
+    <div class="card stat-card"><span class="label">Presença geral</span><span class="value">${me.freq}%</span><span class="foot">${me.freq>avgFreq?'Acima':'Abaixo'} da média da turma (${avgFreq}%)</span></div>
+    <div class="card stat-card"><span class="label">Média geral</span><span class="value">${me.media.toFixed(1).replace('.',',')}</span><span class="foot">Em 11 matérias avaliadas</span></div>
+    <div class="card stat-card"><span class="label">Próxima conquista</span><span class="value">🧪 Química</span><span class="foot">Faltam 4 exercícios</span></div>
+  `;
+}
+
+/* ============ GRADE (semana completa, com pendências) ============ */
+function renderWeekGrid(){
+  const el = document.getElementById('weekGrid');
+  let html = `<div class="cell head"></div>`;
+  days.forEach((d,i)=>{
+    const isWeekend = weekendIndex.includes(i);
+    html += `<div class="cell head ${isWeekend?'weekend':''}">${d}${i===todayIndex?' · hoje':''}</div>`;
+  });
+  slots.forEach((slotLabel, si)=>{
+    html += `<div class="cell time-col mono">${slotLabel.split(' – ')[0]}<span style="color:var(--muted)">até ${slotLabel.split(' – ')[1]}</span></div>`;
+    days.forEach((d, di)=>{
+      const sid = grade[di][si];
+      const isToday = di===todayIndex;
+      const isWeekend = weekendIndex.includes(di);
+      const dueToday = tasksDueOn(di);
+
+      if(sid){
+        const s = subjects.find(x=>x.id===sid);
+        const pendingTask = dueToday.find(t=>t.subjectId===sid && !t.submission);
+        const cls = ['cell','lesson', isToday?'today':'', pendingTask?'has-pending':''].join(' ');
+        html += `<div class="${cls}">
+            <span class="s-name">${s.name}</span>
+            <span class="s-tag">${s.tag}</span>
+            ${pendingTask?`<span class="pending-flag">📌 Entrega pendente</span>`:''}
+          </div>`;
+      } else if(isWeekend && si===0 && dueToday.some(t=>!t.submission)){
+        // Fim de semana sem aula, mas com prazo de tarefa pendente: mostra a matéria da entrega.
+        const pend = dueToday.filter(t=>!t.submission);
+        html += `<div class="cell lesson pending-only">
+            ${pend.map(t=>{
+              const s = subjects.find(x=>x.id===t.subjectId);
+              return `<span class="s-name">📌 ${s.name}</span><span class="s-tag">Entrega pendente · ${t.dueLabel}</span>`;
+            }).join('<div style="height:6px"></div>')}
+          </div>`;
+      } else {
+        html += `<div class="cell lesson empty ${isToday?'today':''} ${isWeekend?'weekend-col':''}">—</div>`;
+      }
+    });
+  });
+  el.innerHTML = html;
+}
+
+/* ============ CONTEÚDOS ============ */
+function coverStyle(s){
+  const dotsA = `radial-gradient(circle at 18% 28%, rgba(255,255,255,.55) 0 7px, transparent 8px), radial-gradient(circle at 78% 22%, rgba(255,255,255,.4) 0 5px, transparent 6px), radial-gradient(circle at 55% 75%, rgba(255,255,255,.45) 0 10px, transparent 11px), radial-gradient(circle at 88% 70%, rgba(255,255,255,.35) 0 6px, transparent 7px)`;
+  const stripes = `repeating-linear-gradient(35deg, rgba(255,255,255,.28) 0 8px, transparent 8px 22px)`;
+  const grid = `linear-gradient(rgba(255,255,255,.28) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.28) 1px, transparent 1px)`;
+  const base = `linear-gradient(135deg, ${s.accent}, ${s.light})`;
+  const patterns = [dotsA, stripes, grid];
+  const size = s.pattern===2 ? 'background-size: auto, 26px 26px, 26px 26px;' : '';
+  return `background-image:${patterns[s.pattern]}, ${base}; ${size}`;
+}
+
+function renderSubjectGrid(){
+  const el = document.getElementById('subjectGrid');
+  el.innerHTML = subjects.map(s=>{
+    const mods = modules[s.id];
+    const done = mods.filter((m,i)=>completedModules.has(s.id+'-'+i)).length;
+    const pct = Math.round(done/mods.length*100);
+    return `
+    <div class="subject-card" data-sid="${s.id}">
+      <div class="subject-cover" style="${coverStyle(s)}">
+        <span class="icon">${s.icon}</span>
+        <span class="grp">${s.tag}</span>
+      </div>
+      <div class="subject-body">
+        <div class="s-name">${s.name}</div>
+        <div class="s-tag2">${mods.length} conteúdos · PDFs da aula e listas</div>
+        <div class="s-meta">
+          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${s.accent}"></div></div>
+          <span class="mono">${pct}%</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.subject-card').forEach(card=>{
+    card.addEventListener('click', ()=> openSubject(card.dataset.sid));
+  });
+}
+
+function showSubjectGrid(){
+  document.getElementById('subjectGridWrap').style.display='block';
+  document.getElementById('subjectDetailWrap').style.display='none';
+  renderSubjectGrid();
+}
+
+function openSubject(sid){
+  currentSubject = sid;
+  const s = subjects.find(x=>x.id===sid);
+  document.getElementById('subjectGridWrap').style.display='none';
+  document.getElementById('subjectDetailWrap').style.display='block';
+  document.getElementById('detailCover').style.background = `linear-gradient(120deg, ${s.accent}, ${s.light})`;
+  document.getElementById('detailCover').innerHTML = `
+    <span class="icon">${s.icon}</span>
+    <div><div class="t1">${s.name}</div><div class="t2">${s.tag} · conteúdos da sala</div></div>
+  `;
+  renderSubjectPanel();
+}
+
+function renderSubjectPanel(){
+  const mods = modules[currentSubject];
+  const panel = document.getElementById('subjectPanel');
+  let rows = mods.map((m,i)=>{
+    const key = currentSubject+'-'+i;
+    const done = completedModules.has(key);
+    const chips = m[2].map(mat=>`<button class="material-chip ${mat.type}" data-file="${mat.label}.pdf">${mat.type==='aula'?'📄':'📝'} ${mat.label} <span style="opacity:.7;">⬇</span></button>`).join('');
+    return `
+      <div class="module-row">
+        <div class="check ${done?'done':''}" data-key="${key}">${done?'✓':''}</div>
+        <div style="flex:1;">
+          <div class="m-title">${m[0]}</div>
+          <div class="m-desc">${m[1]}</div>
+          <div style="margin-top:7px;">${chips}</div>
+        </div>
+        <div class="m-xp">+15 XP</div>
+      </div>`;
+  }).join('');
+  panel.innerHTML = `
+    <div class="empty-note" style="padding:0 0 6px;">${mods.length} conteúdos disponíveis · PDFs de simulação</div>
+    ${rows}
+  `;
+  panel.querySelectorAll('.check').forEach(c=>{
+    c.addEventListener('click', ()=>{
+      const key = c.dataset.key;
+      if(completedModules.has(key)){ completedModules.delete(key); c.classList.remove('done'); c.textContent=''; }
+      else { completedModules.add(key); c.classList.add('done'); c.textContent='✓'; }
+    });
+  });
+}
+
+function renderConteudos(){
+  showSubjectGrid();
+}
+
+/* Delegação de clique para qualquer chip de material (PDF de aula / lista) — central de downloads */
+document.addEventListener('click', e=>{
+  const chip = e.target.closest('.material-chip, .dl-btn');
+  if(!chip || !chip.dataset.file) return;
+  showToast(`⬇ Baixando ${chip.dataset.file}`);
+});
+
+/* ============ TOAST ============ */
+let toastTimer=null;
+function showToast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('show'), 2600);
+}
+
+/* ============ TAREFAS (download do enunciado + upload da resposta em PDF) ============
+   Pensado para o professor atribuir a tarefa (subjectId, título, descrição, prazo, anexo) no painel
+   docente; aqui o aluno só baixa o enunciado e envia sua resposta — o campo "submission" é o único
+   que muda no fluxo do aluno. */
+function renderTasks(){
+  const el = document.getElementById('tasksList');
+  const sorted = [...tasks].sort((a,b)=> (!!a.submission - !!b.submission) || a.dueDayIndex-b.dueDayIndex);
+  el.innerHTML = sorted.map(t=>{
+    const s = subjects.find(x=>x.id===t.subjectId);
+    const status = t.submission ? 'enviado' : 'pendente';
+    const statusLabel = t.submission ? 'Enviado' : 'Pendente';
+    return `
+    <div class="task-card" data-tid="${t.id}">
+      <div class="task-head">
+        <div class="task-info">
+          <div class="t-subject">${s.icon} ${s.name}</div>
+          <div class="t-title">${t.title}</div>
+          <div class="t-desc">${t.description}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:7px;">
+          <span class="task-status ${status}">${statusLabel}</span>
+          <span class="task-due">Prazo: <b>${t.dueLabel}</b></span>
+        </div>
+      </div>
+      <div class="task-actions">
+        ${t.assignedFile ? `<button class="dl-btn" data-file="${t.assignedFile}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+            Baixar enunciado
+          </button>` : `<span class="empty-note" style="padding:0;">Sem anexo do professor — envie sua resposta abaixo</span>`}
+      </div>
+      ${t.submission
+        ? `<div class="submitted-file">
+             <span class="f-icon">📄</span>
+             <div><div class="f-name">${t.submission.fileName}</div><div class="f-meta">Enviado em ${t.submission.submittedAt}</div></div>
+             <button class="f-remove" data-remove="${t.id}">Remover e reenviar</button>
+           </div>`
+        : `<label class="upload-zone" data-drop="${t.id}">
+             <span class="u-icon">⬆️</span>
+             <div><div class="u-text">Enviar resposta em PDF</div><div class="u-sub">Toque para escolher o arquivo, ou arraste aqui</div></div>
+             <input type="file" accept="application/pdf,.pdf" data-upload="${t.id}">
+           </label>`
+      }
+    </div>`;
+  }).join('');
+
+  const pendingDot = document.getElementById('tarefasPendingDot');
+  pendingDot.style.display = tasks.some(t=>!t.submission) ? 'inline-block' : 'none';
+
+  el.querySelectorAll('input[type=file][data-upload]').forEach(inp=>{
+    inp.addEventListener('change', ()=>{
+      const file = inp.files[0];
+      if(!file) return;
+      submitTaskFile(inp.dataset.upload, file);
+    });
+  });
+  el.querySelectorAll('[data-remove]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const task = tasks.find(x=>x.id===btn.dataset.remove);
+      task.submission = null;
+      renderTasks();
+    });
+  });
+  el.querySelectorAll('.upload-zone').forEach(zone=>{
+    zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', ()=> zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e=>{
+      e.preventDefault(); zone.classList.remove('dragover');
+      const file = e.dataTransfer.files[0];
+      if(file) submitTaskFile(zone.dataset.drop, file);
+    });
+  });
+}
+
+function submitTaskFile(taskId, file){
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  if(!isPdf){ showToast('⚠ Envie um arquivo em PDF'); return; }
+  const task = tasks.find(x=>x.id===taskId);
+  task.submission = {fileName:file.name, submittedAt:'agora'};
+  showToast(`✓ Resposta enviada: ${file.name}`);
+  renderTasks();
+  renderWeekGrid();
+}
+
+/* ============ MINHAS NOTAS (só o que é do aluno) ============
+   Seccionado por semestre; cada matéria expande (drill-down) mostrando a composição de notas
+   configurada pelo professor — a estrutura de "items" vem pronta para o painel docente alimentar. */
+function freqForSubject(i){ return 78 + (i*2)%22; }
+
+function renderSemesterBlock(semNum){
+  const rows = subjects.map((s,i)=>{
+    const items = gradeComposition[s.id][semNum];
+    const nota = semesterAverage(items);
+    const freq = freqForSubject(i);
+    const pill = freq>=85 ? 'ok' : freq>=70 ? 'warn' : 'risk';
+    const label = freq>=85 ? 'Em dia' : freq>=70 ? 'Atenção' : 'Risco';
+    return `
+    <div class="grade-item" data-sid="${s.id}">
+      <div class="grade-row">
+        <span class="g-name">${s.icon} ${s.name}</span>
+        <span class="g-nota mono">${nota.toFixed(1).replace('.',',')}</span>
+        <span class="g-freq mono">${freq}%</span>
+        <span class="pill ${pill}">${label}</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="grade-detail">
+        <div class="grade-detail-in">
+          ${items.map(it=>`
+            <div class="comp-row">
+              <span class="c-label">${it.label}</span>
+              <span class="c-weight">${it.weight}</span>
+              <span class="c-score mono">${it.score.toFixed(1).replace('.',',')} / ${it.max}</span>
+            </div>`).join('')}
+          <div class="comp-note">Composição definida pelo professor para ${s.name.toLowerCase()} — pode variar de matéria para matéria.</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="semester-block">
+      <div class="semester-head"><h4>${semNum}º Semestre</h4><span>${subjects.length} matérias · toque para ver o detalhamento</span></div>
+      <div class="grade-accordion">${rows}</div>
+    </div>`;
+}
+
+function renderNotas(){
+  const alunoBox = document.getElementById('notasAluno');
+  alunoBox.innerHTML = `
+    <div class="card own-grade-card" style="margin-bottom:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0;">Sua presença geral</h3>
+          <span class="empty-note" style="padding:0;">Só você consegue ver as suas notas e presença</span>
+        </div>
+        <span class="pill ok">${me.freq}%</span>
+      </div>
+      <div class="bar-track"><div class="bar-fill" style="width:${me.freq}%"></div></div>
+    </div>
+    ${renderSemesterBlock(1)}
+    ${renderSemesterBlock(2)}
+  `;
+  alunoBox.querySelectorAll('.grade-row').forEach(row=>{
+    row.addEventListener('click', ()=> row.closest('.grade-item').classList.toggle('open'));
+  });
+}
+
+/* ============ RANKING (por presença) ============ */
+function renderRanking(){
+  const sorted = [...students].sort((a,b)=> b.freq - a.freq || b.xp - a.xp);
+  const list = document.getElementById('rankList');
+  list.innerHTML = sorted.map((s,i)=>`
+    <div class="rank-row ${i===0?'top1':''} ${s.me?'me':''}">
+      <div class="rank-pos">${i+1}</div>
+      <div>
+        <div class="rank-name">${s.name}${s.me?' · você':''}</div>
+        <div class="rank-sub">${s.school || 'Cursinho FEI'} · sequência de ${s.streak} dia${s.streak===1?'':'s'}</div>
+      </div>
+      <div class="rank-freq">${s.freq}%<span class="xp-sub">${s.xp} XP</span></div>
+    </div>
+  `).join('');
+
+  const ach = document.getElementById('achList');
+  ach.innerHTML = badgesAll.map(b=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 4px;">
+      <div style="font-size:20px;opacity:${b.unlocked?1:.35}">${b.icon}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13px;color:${b.unlocked?'var(--ink)':'var(--muted)'}">${b.name}</div>
+        <div class="empty-note" style="padding:0;">${b.unlocked ? 'Desbloqueada' : 'Ainda não desbloqueada'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ============ MONITOR: NAV ============ */
+const monTitles = {
+  'mon-alunos':['Cadastro de Alunos','Cadastre e gerencie a turma'],
+  'mon-presenca':['Presença','Registre a aula e marque quem esteve presente'],
+  'mon-materiais':['Conteúdos Aula','Envie PDFs de aula e listas de exercícios'],
+  'mon-atividades':['Atividades','Atribua tarefas e lance notas de cada entrega'],
+  'mon-notas':['Notas','Lance notas de avaliação para os alunos cadastrados'],
+  'mon-relatorio':['Relatório','Horas complementares e histórico de aulas'],
+};
+document.getElementById('navMon').addEventListener('click', e=>{
+  const btn = e.target.closest('button[data-view]');
+  if(!btn) return;
+  document.querySelectorAll('#navMon button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#appShellMonitor .view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+btn.dataset.view).classList.add('active');
+  const t = monTitles[btn.dataset.view];
+  document.getElementById('pageTitleMon').textContent = t[0];
+  document.getElementById('pageSubMon').textContent = t[1];
+  document.getElementById('sidebarMon').classList.remove('open');
+});
+
+function populateSubjectSelect(selectId){
+  document.getElementById(selectId).innerHTML =
+    subjects.map(s=>`<option value="${s.id}">${s.icon} ${s.name}</option>`).join('');
+}
+
+/* ---------- Estatísticas (usadas no Relatório) ---------- */
+function refreshMonitorStats(){
+  document.getElementById('statAulas').textContent = monitorClasses.length;
+  const totalHoras = monitorClasses.reduce((a,c)=>a+c.duration,0);
+  document.getElementById('statHoras').textContent = (Math.round(totalHoras*10)/10) + 'h';
+  document.getElementById('statAlunos').textContent = students.length;
+  document.getElementById('statAtividades').textContent = tasks.length;
+}
+
+function classRowHtml(c){
+  const s = subjects.find(x=>x.id===c.subjectId);
+  const att = attendance[c.id];
+  const presentCount = att ? Object.values(att).filter(Boolean).length : null;
+  return `<div class="class-row" data-cid="${c.id}">
+    <span class="c-date">${c.date}${c.day?' · '+c.day:''}</span>
+    <span class="c-subject">${s.icon} ${s.name}</span>
+    <span class="c-time">${c.time}</span>
+    <span class="pill ${att?'ok':'warn'}">${att ? presentCount+'/'+students.length+' presentes' : 'Chamada pendente'}</span>
+  </div>`;
+}
+function renderClassHistory(){
+  const el = document.getElementById('classHistoryList');
+  const sorted = [...monitorClasses].reverse();
+  el.innerHTML = sorted.length ? sorted.map(classRowHtml).join('') : '<div class="empty-hint">Nenhuma aula registrada ainda.</div>';
+  el.querySelectorAll('.class-row').forEach(row=> row.addEventListener('click', ()=> openAttendanceFor(row.dataset.cid)));
+}
+
+/* ---------- Cadastro de Alunos (sem opção de excluir) ---------- */
+function renderAlunosTable(){
+  const body = document.getElementById('alunosTableBody');
+  body.innerHTML = students.map(s=>`
+    <tr>
+      <td>${s.name}</td>
+      <td>${s.birthDate || '—'}</td>
+      <td>${s.school || '—'}</td>
+      <td>${s.email || '—'}</td>
+      <td>${s.phone || '—'}</td>
+    </tr>`).join('');
+  document.getElementById('alunosCount').textContent = students.length + (students.length===1?' aluno':' alunos');
+}
+document.getElementById('alunoForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const nome = document.getElementById('alunoNome').value.trim();
+  if(!nome){ showToast('⚠ Informe o nome completo do aluno'); return; }
+  const birthDate = document.getElementById('alunoNasc').value.trim();
+  const school = document.getElementById('alunoEscola').value.trim();
+  const email = document.getElementById('alunoEmail').value.trim();
+  const phone = document.getElementById('alunoTelefone').value.trim();
+
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  const { error } = await supabase.from('alunos').insert({
+    nome_completo: nome,
+    data_nascimento: parseDateBRtoISO(birthDate),
+    escola_atual: school || null,
+    email: email || null,
+    telefone: phone || null,
+  });
+
+  submitBtn.disabled = false;
+
+  if(error){
+    console.error(error);
+    showToast('⚠ Erro ao cadastrar: ' + error.message);
+    return;
+  }
+
+  e.target.reset();
+  await loadStudents('monitor');
+  renderAlunosTable();
+  renderRanking();
+  refreshMonitorStats();
+  renderAtividadesList();
+  renderNotaAlunosList();
+  showToast(`✓ ${nome} cadastrado(a)`);
+});
+
+/* ---------- Presença (data e dia da semana automáticos) ---------- */
+const weekdayAbbrev = {0:'DOM',1:'SEG',2:'TER',3:'QUA',4:'QUI',5:'SEX',6:'SAB'};
+function pad2(n){ return n<10 ? '0'+n : ''+n; }
+function autoFillClassDateDay(){
+  const now = new Date();
+  document.getElementById('classDate').value = `${pad2(now.getDate())}/${pad2(now.getMonth()+1)}`;
+  document.getElementById('classDay').value = weekdayAbbrev[now.getDay()];
+}
+function renderRoster(){
+  if(!currentAttendanceClassId) return;
+  const c = monitorClasses.find(x=>x.id===currentAttendanceClassId);
+  if(!c) return;
+  const s = subjects.find(x=>x.id===c.subjectId);
+  document.getElementById('attendanceTitle').textContent = `Chamada · ${s.name} · ${c.date} (${c.time})`;
+  const att = attendance[c.id] || {};
+  const el = document.getElementById('rosterList');
+  el.innerHTML = students.map(st=>{
+    const present = att[st.id] !== false;
+    return `<div class="roster-row">
+      <div style="flex:1;">
+        <div class="r-name">${st.name}</div>
+        <div class="r-turma">${st.school || 'Cursinho FEI'}</div>
+      </div>
+      <button type="button" class="present-toggle ${present?'present':'absent'}" data-sid="${st.id}">${present?'✓ Presente':'✕ Faltou'}</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.present-toggle').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const isPresent = btn.classList.contains('present');
+      btn.classList.toggle('present', !isPresent);
+      btn.classList.toggle('absent', isPresent);
+      btn.textContent = !isPresent ? '✓ Presente' : '✕ Faltou';
+    });
+  });
+}
+function openAttendanceFor(classId){
+  currentAttendanceClassId = classId;
+  document.getElementById('attendanceCard').style.display = 'block';
+  renderRoster();
+  document.getElementById('attendanceCard').scrollIntoView({behavior:'smooth', block:'start'});
+}
+document.getElementById('classForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const subjectId = document.getElementById('classSubject').value;
+  const date = document.getElementById('classDate').value;
+  const day = document.getElementById('classDay').value;
+  const time = document.getElementById('classTime').value;
+  const turma = document.getElementById('classTurma').value;
+  const c = {id:newId('c'), date, day, subjectId, time, duration:1.5, turma};
+  monitorClasses.push(c);
+  currentAttendanceClassId = c.id;
+  refreshMonitorStats();
+  renderClassHistory();
+  renderReportTable();
+  document.getElementById('attendanceCard').style.display = 'block';
+  renderRoster();
+  showToast('✓ Aula registrada — marque a presença abaixo');
+  document.getElementById('attendanceCard').scrollIntoView({behavior:'smooth', block:'start'});
+});
+document.getElementById('saveAttendanceBtn').addEventListener('click', ()=>{
+  if(!currentAttendanceClassId) return;
+  const rec = {};
+  document.querySelectorAll('#rosterList .present-toggle').forEach(btn=> rec[btn.dataset.sid] = btn.classList.contains('present'));
+  attendance[currentAttendanceClassId] = rec;
+  const presentCount = Object.values(rec).filter(Boolean).length;
+  showToast(`✓ Chamada salva: ${presentCount}/${students.length} presentes`);
+  renderClassHistory();
+  renderReportTable();
+});
+
+/* ---------- Ajuda genérica: zona de upload (clique + arrastar) ---------- */
+function wireUploadZone(zoneId, inputId, labelId, defaultLabel){
+  const zone = document.getElementById(zoneId);
+  const input = document.getElementById(inputId);
+  const label = document.getElementById(labelId);
+  input.addEventListener('change', ()=>{
+    const f = input.files[0];
+    label.textContent = f ? f.name : defaultLabel;
+  });
+  zone.addEventListener('dragover', e=>{ e.preventDefault(); zone.classList.add('dragover'); });
+  zone.addEventListener('dragleave', ()=> zone.classList.remove('dragover'));
+  zone.addEventListener('drop', e=>{
+    e.preventDefault(); zone.classList.remove('dragover');
+    const f = e.dataTransfer.files[0];
+    if(f){ input.files = e.dataTransfer.files; label.textContent = f.name; }
+  });
+}
+
+/* ---------- Conteúdos Aula (PDFs) ---------- */
+let monitorMaterialsLog = [];
+document.getElementById('materialForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const subjectId = document.getElementById('matSubject').value;
+  const tipo = document.getElementById('matTipo').value;
+  const titulo = document.getElementById('matTitulo').value.trim() || 'Material extra';
+  const file = document.getElementById('matArquivo').files[0];
+  if(!file){ showToast('⚠ Selecione o arquivo em PDF'); return; }
+  const arquivo = file.name.replace(/\.pdf$/i,'');
+  const s = subjects.find(x=>x.id===subjectId);
+  modules[subjectId].push([titulo, 'Enviado pelo monitor em '+new Date().toLocaleDateString('pt-BR'), [{type:tipo, label:arquivo}]]);
+  monitorMaterialsLog.unshift({subjectId, tipo, titulo, arquivo, at:new Date().toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})});
+  e.target.reset();
+  document.getElementById('matFileLabel').textContent = 'Toque para escolher o PDF';
+  renderMateriaisList();
+  renderConteudos();
+  showToast(`✓ PDF adicionado em ${s.name}`);
+});
+function renderMateriaisList(){
+  const el = document.getElementById('materiaisList');
+  document.getElementById('materiaisCount').textContent = monitorMaterialsLog.length + (monitorMaterialsLog.length===1?' material':' materiais');
+  if(!monitorMaterialsLog.length){ el.innerHTML = '<div class="empty-hint">Nenhum material enviado ainda.</div>'; return; }
+  el.innerHTML = monitorMaterialsLog.map(m=>{
+    const s = subjects.find(x=>x.id===m.subjectId);
+    return `<div class="class-row" style="cursor:default;">
+      <span class="c-date">${m.at}</span>
+      <span class="c-subject">${s.icon} ${s.name} · ${m.titulo}</span>
+      <span class="c-time">${m.tipo==='aula'?'📄 PDF da aula':'📝 Lista'} · ${m.arquivo}.pdf</span>
+    </div>`;
+  }).join('');
+}
+
+/* ---------- Atividades (atribuição + recebimento + nota por entrega) ---------- */
+let taskSubmissions = {
+  t3: { s5: {submitted:true, fileName:'estequiometria_beatriz.pdf', grade:8.5} },
+};
+function ensureTaskSubmissions(taskId){
+  if(!taskSubmissions[taskId]) taskSubmissions[taskId] = {};
+  students.forEach(st=>{
+    if(!taskSubmissions[taskId][st.id]) taskSubmissions[taskId][st.id] = {submitted:false, fileName:null, grade:null};
+  });
+}
+document.getElementById('taskForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const subjectId = document.getElementById('taskSubject').value;
+  const dayIdx = parseInt(document.getElementById('taskDay').value, 10);
+  const hora = document.getElementById('taskHora').value.trim() || '23h59';
+  const anexoFile = document.getElementById('taskAnexo').files[0];
+  const anexo = anexoFile ? anexoFile.name : null;
+  const titulo = document.getElementById('taskTitulo').value.trim();
+  const desc = document.getElementById('taskDesc').value.trim();
+  if(!titulo){ showToast('⚠ Informe o título da atividade'); return; }
+  const id = newId('t');
+  tasks.push({
+    id, subjectId, title:titulo, description: desc || 'Sem instruções adicionais.',
+    assignedFile: anexo, dueDayIndex: dayIdx, dueLabel: `${days[dayIdx]} · ${hora}`, submission:null,
+  });
+  ensureTaskSubmissions(id);
+  e.target.reset();
+  document.getElementById('taskHora').value = '23h59';
+  document.getElementById('taskFileLabel').textContent = 'Toque para anexar o enunciado';
+  renderAtividadesList();
+  renderTasks();
+  renderWeekGrid();
+  refreshMonitorStats();
+  showToast('✓ Atividade atribuída');
+});
+function renderAtividadesList(){
+  tasks.forEach(t=> ensureTaskSubmissions(t.id));
+  const el = document.getElementById('atividadesAccordion');
+  document.getElementById('atividadesCount').textContent = tasks.length + (tasks.length===1?' atividade':' atividades');
+  el.innerHTML = tasks.map(t=>{
+    const s = subjects.find(x=>x.id===t.subjectId);
+    const subs = taskSubmissions[t.id];
+    const entregues = Object.values(subs).filter(x=>x.submitted).length;
+    const rows = students.map(st=>{
+      const sub = subs[st.id];
+      return `<div class="comp-row">
+        <span class="c-label">${st.name}${sub.fileName?' · '+sub.fileName:''}</span>
+        <button type="button" class="present-toggle ${sub.submitted?'present':'absent'}" data-tid="${t.id}" data-sid="${st.id}" data-action="toggle-sub">${sub.submitted?'✓ Entregue':'Marcar entregue'}</button>
+        <input type="number" min="0" max="10" step="0.1" class="grade-input-field" data-tid="${t.id}" data-sid="${st.id}" value="${sub.grade!=null?sub.grade:''}" placeholder="nota" ${sub.submitted?'':'disabled'}>
+      </div>`;
+    }).join('');
+    return `<div class="grade-item" data-tid="${t.id}">
+      <div class="grade-row">
+        <span class="g-name">${s.icon} ${s.name} · ${t.title}</span>
+        <span class="g-freq mono">${entregues}/${students.length}</span>
+        <span class="pill ${entregues===students.length?'ok':'warn'}">${entregues===students.length?'Todos entregaram':'Aguardando entregas'}</span>
+        <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="grade-detail"><div class="grade-detail-in">${rows}</div></div>
+    </div>`;
+  }).join('');
+
+  el.querySelectorAll('.grade-row').forEach(row=> row.addEventListener('click', ()=> row.closest('.grade-item').classList.toggle('open')));
+  el.querySelectorAll('[data-action="toggle-sub"]').forEach(btn=>{
+    btn.addEventListener('click', ev=>{
+      ev.stopPropagation();
+      const {tid, sid} = btn.dataset;
+      const sub = taskSubmissions[tid][sid];
+      sub.submitted = !sub.submitted;
+      if(!sub.submitted) sub.grade = null;
+      renderAtividadesList();
+      const item = el.querySelector(`.grade-item[data-tid="${tid}"]`);
+      if(item) item.classList.add('open');
+    });
+  });
+  el.querySelectorAll('.grade-input-field').forEach(inp=>{
+    inp.addEventListener('click', ev=> ev.stopPropagation());
+    inp.addEventListener('change', ()=>{
+      const {tid, sid} = inp.dataset;
+      let v = parseFloat(inp.value);
+      v = isNaN(v) ? null : Math.max(0, Math.min(10, Math.round(v*10)/10));
+      taskSubmissions[tid][sid].grade = v;
+      inp.value = v!=null ? v : '';
+      showToast('✓ Nota salva');
+    });
+  });
+}
+
+/* ---------- Notas (avaliações / provas, para todos os alunos cadastrados) ---------- */
+let examGrades = {}; // examGrades[`${subjectId}__${examName}`] = {studentId: nota}
+function renderNotaAlunosList(){
+  const subjectId = document.getElementById('notaSubject').value;
+  const examName = document.getElementById('notaExame').value.trim() || 'Avaliação';
+  const existing = examGrades[subjectId+'__'+examName] || {};
+  document.getElementById('notaAlunosList').innerHTML = students.map(st=>`
+    <div class="comp-row">
+      <span class="c-label">${st.name}</span>
+      <input type="number" min="0" max="10" step="0.1" class="grade-input-field" data-sid="${st.id}" value="${existing[st.id]!=null?existing[st.id]:''}" placeholder="nota">
+    </div>`).join('');
+}
+document.getElementById('notaSubject').addEventListener('change', renderNotaAlunosList);
+document.getElementById('notaExame').addEventListener('input', renderNotaAlunosList);
+document.getElementById('saveNotasBtn').addEventListener('click', ()=>{
+  const subjectId = document.getElementById('notaSubject').value;
+  const examName = document.getElementById('notaExame').value.trim() || 'Avaliação';
+  const key = subjectId+'__'+examName;
+  const rec = examGrades[key] || {};
+  document.querySelectorAll('#notaAlunosList .grade-input-field').forEach(inp=>{
+    const v = parseFloat(inp.value);
+    if(!isNaN(v)) rec[inp.dataset.sid] = Math.max(0, Math.min(10, Math.round(v*10)/10));
+  });
+  examGrades[key] = rec;
+  renderNotasLancadas();
+  showToast(`✓ Notas salvas: ${examName}`);
+});
+function renderNotasLancadas(){
+  const body = document.getElementById('notasLancadasBody');
+  const rowsData = [];
+  Object.keys(examGrades).forEach(key=>{
+    const [subjectId, examName] = key.split('__');
+    const s = subjects.find(x=>x.id===subjectId);
+    const rec = examGrades[key];
+    Object.keys(rec).forEach(sid=>{
+      const st = students.find(x=>x.id===sid);
+      if(st) rowsData.push({aluno:st.name, materia:s.name, exame:examName, nota:rec[sid]});
+    });
+  });
+  document.getElementById('notasLancadasCount').textContent = rowsData.length + (rowsData.length===1?' registro':' registros');
+  body.innerHTML = rowsData.length
+    ? rowsData.map(r=>`<tr><td>${r.aluno}</td><td>${r.materia}</td><td>${r.exame}</td><td class="num">${r.nota.toFixed(1).replace('.',',')}</td></tr>`).join('')
+    : '<tr><td colspan="4" class="empty-note">Nenhuma nota lançada ainda.</td></tr>';
+}
+
+/* ---------- Relatório ---------- */
+function renderReportTable(){
+  const body = document.getElementById('reportTableBody');
+  body.innerHTML = monitorClasses.map(c=>{
+    const s = subjects.find(x=>x.id===c.subjectId);
+    const att = attendance[c.id];
+    const presentCount = att ? Object.values(att).filter(Boolean).length : null;
+    return `<tr>
+      <td>${c.date}</td><td>${c.day||'—'}</td><td>${s.name}</td><td>${c.time}</td>
+      <td class="num">${c.duration}h</td><td>${c.turma}</td>
+      <td class="num">${att ? presentCount+'/'+students.length : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+document.getElementById('downloadReportBtn').addEventListener('click', ()=>{
+  const header = ['Data','Dia','Matéria','Horário','Duração (h)','Turma','Presentes'];
+  const rows = monitorClasses.map(c=>{
+    const s = subjects.find(x=>x.id===c.subjectId);
+    const att = attendance[c.id];
+    const presentCount = att ? Object.values(att).filter(Boolean).length : '';
+    return [c.date, c.day||'', s.name, c.time, c.duration, c.turma, presentCount];
+  });
+  const csv = [header, ...rows].map(r=> r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
+  const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'relatorio-aulas-monitor.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('⬇ Relatório baixado');
+});
+
+function initMonitor(){
+  document.getElementById('monName').textContent = monitorProfile.name;
+  document.getElementById('monTopName').textContent = monitorProfile.name;
+  document.getElementById('monTurma').textContent = monitorProfile.turma;
+  populateSubjectSelect('classSubject');
+  populateSubjectSelect('matSubject');
+  populateSubjectSelect('taskSubject');
+  populateSubjectSelect('notaSubject');
+  document.getElementById('taskDay').innerHTML = days.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
+  autoFillClassDateDay();
+  wireUploadZone('matUploadZone','matArquivo','matFileLabel','Toque para escolher o PDF');
+  wireUploadZone('taskUploadZone','taskAnexo','taskFileLabel','Toque para anexar o enunciado');
+  refreshMonitorStats();
+  renderAlunosTable();
+  renderClassHistory();
+  renderMateriaisList();
+  renderAtividadesList();
+  renderNotaAlunosList();
+  renderNotasLancadas();
+  renderReportTable();
+}
+
+/* ============ INIT ============
+   As telas de aluno e monitor só são populadas depois do login bem-sucedido
+   (ver initAfterLogin), já que os dados agora vêm do Supabase. */
+
+/* ============ LOGIN / LOGOUT (Supabase Auth, com 2 perfis) ============ */
+const loginScreen = document.getElementById('loginScreen');
+const appShell = document.getElementById('appShell');
+const appShellMonitor = document.getElementById('appShellMonitor');
+const loginWrap = document.getElementById('loginWrap');
+const successScreen = document.getElementById('successScreen');
+const loginForm = document.getElementById('loginForm');
+const emailInput = document.getElementById('email');
+const passwordInput = document.getElementById('password');
+const userField = document.getElementById('userField');
+const passField = document.getElementById('passField');
+const errorMsg = document.getElementById('errorMsg');
+const errorText = document.getElementById('errorText');
+const loginSubmitBtn = loginForm.querySelector('.btn-entrar');
+let pendingRole = null;
+
+function showApp(role){
+  const r = role || pendingRole;
+  loginScreen.style.display = 'none';
+  appShell.style.display = r === 'monitor' ? 'none' : 'flex';
+  appShellMonitor.style.display = r === 'monitor' ? 'flex' : 'none';
+}
+function showLogin(){
+  appShell.style.display = 'none';
+  appShellMonitor.style.display = 'none';
+  loginScreen.style.display = 'flex';
+  loginWrap.style.display = 'flex';
+  successScreen.classList.remove('show');
+  loginForm.reset();
+  clearLoginErrors();
+}
+
+function clearLoginErrors(){
+  errorMsg.classList.remove('show');
+  userField.classList.remove('invalid');
+  passField.classList.remove('invalid');
+}
+
+loginForm.addEventListener('submit', async e=>{
+  e.preventDefault();
+  clearLoginErrors();
+  const email = emailInput.value.trim();
+  const pass = passwordInput.value;
+
+  if(!email || !pass){
+    errorText.textContent = 'Preencha e-mail e senha para continuar.';
+    errorMsg.classList.add('show');
+    if(!email) userField.classList.add('invalid');
+    if(!pass) passField.classList.add('invalid');
+    return;
+  }
+
+  loginSubmitBtn.disabled = true;
+
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password: pass });
+
+  if(authError || !authData.session){
+    errorText.textContent = 'E-mail ou senha incorretos.';
+    errorMsg.classList.add('show');
+    userField.classList.add('invalid');
+    passField.classList.add('invalid');
+    passwordInput.value = '';
+    passwordInput.focus();
+    loginSubmitBtn.disabled = false;
+    return;
+  }
+
+  const role = await resolveRoleAndProfile(email);
+  loginSubmitBtn.disabled = false;
+
+  if(!role){
+    errorText.textContent = 'Login válido, mas nenhum perfil de aluno ou monitor foi encontrado para este e-mail.';
+    errorMsg.classList.add('show');
+    await supabase.auth.signOut();
+    return;
+  }
+
+  pendingRole = role;
+  await initAfterLogin(role);
+
+  document.getElementById('successScreen').querySelector('p').textContent =
+    role === 'monitor' ? 'Bem-vindo(a) de volta. Redirecionando para o painel do monitor.' : 'Bem-vindo(a) de volta. Redirecionando para o seu painel.';
+  loginWrap.style.display = 'none';
+  successScreen.classList.add('show');
+});
+
+document.getElementById('togglePass').addEventListener('click', ()=>{
+  const isPass = passwordInput.type === 'password';
+  passwordInput.type = isPass ? 'text' : 'password';
+  document.getElementById('eyeIcon').innerHTML = isPass
+    ? '<path d="M3 3l18 18M10.6 10.7a3 3 0 0 0 4.2 4.2M6.5 6.7C4 8.3 2.5 10.7 2 12c0 0 3.6 7 10 7 2 0 3.7-.6 5.1-1.5M9.9 5.2A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7-.4.8-1.2 2.1-2.4 3.4" stroke-linecap="round"/>'
+    : '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>';
+});
+
+[emailInput, passwordInput].forEach(inp=> inp.addEventListener('input', clearLoginErrors));
+
+document.getElementById('btnContinuar').addEventListener('click', ()=> showApp());
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  await supabase.auth.signOut();
+  students = []; me = null; myAlunoId = null; pendingRole = null;
+  showLogin();
+});
+document.getElementById('logoutBtnMon').addEventListener('click', async ()=>{
+  await supabase.auth.signOut();
+  students = []; myAlunoId = null; pendingRole = null;
+  showLogin();
+});
+
+/* Sessão já ativa (ex: recarregou a página) entra direto no painel certo.
+   O supabase-js guarda a sessão sozinho (localStorage), então só perguntamos a ele. */
+(async ()=>{
+  const { data: { session } } = await supabase.auth.getSession();
+  if(session && session.user && session.user.email){
+    const role = await resolveRoleAndProfile(session.user.email);
+    if(role){
+      pendingRole = role;
+      await initAfterLogin(role);
+      showApp(role);
+      return;
+    }
+  }
+  showLogin();
+})();
+</script>
+</body>
+</html>

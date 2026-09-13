@@ -1049,6 +1049,10 @@
                 <label for="taskHora">Horário do prazo</label>
                 <div class="input-shell"><input type="text" id="taskHora" placeholder="Ex: 23h59" value="23h59"></div>
               </div>
+              <div class="m-field">
+                <label for="taskXp">XP da entrega</label>
+                <div class="input-shell"><input type="number" id="taskXp" min="0" step="1" value="10"></div>
+              </div>
             </div>
             <div class="m-field" style="margin-top:14px;">
               <label for="taskTitulo">Título da atividade</label>
@@ -1182,54 +1186,25 @@ const grade = [
   [null,null],
   [null,null],
 ];
-const todayIndex = 1; // Terça, só para a demonstração
+const todayIndex = new Date().getDay()===0 ? 6 : new Date().getDay()-1; // Seg=0 ... Dom=6, calculado de verdade
 
-/* ============ TAREFAS ============
-   Estrutura pensada para futura integração com o painel do professor:
-   cada tarefa nasce lá (subjectId, título, descrição, prazo, anexo do enunciado)
-   e a submissão do aluno (arquivo PDF) é o único campo que o aluno preenche. */
-const tasks = [
-  {
-    id:'t1', subjectId:'alg', title:'Lista de exercícios — Sistemas lineares',
-    description:'Resolver os 10 exercícios do PDF e enviar a resolução escaneada ou digitada em PDF.',
-    assignedFile:'Enunciado_Sistemas_Lineares.pdf', dueDayIndex:5, dueLabel:'Sáb · 18h00',
-    submission:null,
-  },
-  {
-    id:'t2', subjectId:'red', title:'Redação dissertativa-argumentativa',
-    description:'Tema: "Desafios da mobilidade urbana no Brasil". Mínimo de 25 linhas, seguindo a estrutura ENEM.',
-    assignedFile:'Proposta_Redacao_Mobilidade.pdf', dueDayIndex:6, dueLabel:'Dom · 23h59',
-    submission:null,
-  },
-  {
-    id:'t3', subjectId:'qui', title:'Lista de exercícios — Estequiometria',
-    description:'Entregar a resolução em PDF até o fim da aula de terça-feira.',
-    assignedFile:'Lista_Estequiometria.pdf', dueDayIndex:1, dueLabel:'Ter · 20h50',
-    submission:{fileName:'estequiometria_beatriz.pdf', submittedAt:'28/08 · 21h40'},
-  },
-  {
-    id:'t4', subjectId:'bio', title:'Resumo — Genética mendeliana',
-    description:'Produzir um resumo esquemático (1 a 2 páginas) sobre a 1ª e 2ª leis de Mendel.',
-    assignedFile:null, dueDayIndex:3, dueLabel:'Qui · 19h00',
-    submission:null,
-  },
-];
-function tasksDueOn(dayIndex){ return tasks.filter(t=>t.dueDayIndex===dayIndex); }
+/* ============ ATIVIDADES ============
+   Não existem mais tarefas fixas no código: cada atividade nasce quando o monitor
+   cadastra pelo painel dele (tabela `atividades` no Supabase) e a entrega do aluno
+   só existe de verdade quando ele sobe um arquivo (tabela `entregas`).
+   Ver loadAtividades() / loadEntregas(). */
+let atividades = [];
+let minhasEntregas = {};       // minhasEntregas[atividadeId] = entrega do aluno logado (ou undefined)
+let entregasByAtividade = {};  // entregasByAtividade[atividadeId] = [entregas de todos os alunos] (visão do monitor)
+function tasksDueOn(dayIndex){ return atividades.filter(t=>t.prazoDiaIndex===dayIndex); }
 
-function mats(aulaLabel, listaLabel){ return [{type:'aula',label:aulaLabel},{type:'lista',label:listaLabel}]; }
-const modules = {
-  gram:[['Concordância verbal e nominal','Regras essenciais + pegadinhas de prova', mats('PDF da aula · Concordância','Lista de exercícios 1 (PDF)')],['Crase na prática','Quando usar e quando não usar', mats('PDF da aula · Crase','Lista de exercícios 2 (PDF)')],['Regência','Verbal e nominal, com exercícios', mats('PDF da aula · Regência','Lista de exercícios 3 (PDF)')]],
-  red:[['Estrutura dissertativa-argumentativa','Introdução, desenvolvimento e conclusão', mats('PDF da aula · Estrutura ENEM','Lista de exercícios 1 (PDF)')],['Repertório sociocultural','Como usar sem parecer decorado', mats('PDF da aula · Repertório','Lista de exercícios 2 (PDF)')],['Correção coletiva','Redações da turma comentadas', mats('PDF da aula · Correção','Lista de exercícios 3 (PDF)')]],
-  lit:[['Modernismo brasileiro','1ª, 2ª e 3ª fases', mats('PDF da aula · Modernismo','Lista de exercícios 1 (PDF)')],['Realismo e Naturalismo','Machado de Assis em foco', mats('PDF da aula · Realismo','Lista de exercícios 2 (PDF)')],['Poesia contemporânea','Leitura guiada', mats('PDF da aula · Poesia','Lista de exercícios 3 (PDF)')]],
-  alg:[['Funções do 1º e 2º grau','Gráficos e raízes', mats('PDF da aula · Funções','Lista de exercícios 1 (PDF)')],['Sistemas lineares','Métodos de resolução', mats('PDF da aula · Sistemas','Lista de exercícios 2 (PDF)')],['Progressões','PA e PG aplicadas ao Enem', mats('PDF da aula · Progressões','Lista de exercícios 3 (PDF)')]],
-  geo:[['Áreas e perímetros','Figuras planas', mats('PDF da aula · Áreas','Lista de exercícios 1 (PDF)')],['Geometria espacial','Prismas e pirâmides', mats('PDF da aula · Espacial','Lista de exercícios 2 (PDF)')],['Trigonometria no triângulo retângulo','Seno, cosseno e tangente', mats('PDF da aula · Trigonometria','Lista de exercícios 3 (PDF)')]],
-  fis:[['Cinemática','MU e MUV', mats('PDF da aula · Cinemática','Lista de exercícios 1 (PDF)')],['Leis de Newton','Aplicações práticas', mats('PDF da aula · Newton','Lista de exercícios 2 (PDF)')],['Energia e trabalho','Conservação de energia', mats('PDF da aula · Energia','Lista de exercícios 3 (PDF)')]],
-  qui:[['Estequiometria','Cálculos com mol', mats('PDF da aula · Estequiometria','Lista de exercícios 1 (PDF)')],['Ligações químicas','Iônica, covalente e metálica', mats('PDF da aula · Ligações','Lista de exercícios 2 (PDF)')],['Química orgânica I','Funções orgânicas', mats('PDF da aula · Orgânica I','Lista de exercícios 3 (PDF)')]],
-  bio:[['Citologia','Estrutura e função celular', mats('PDF da aula · Citologia','Lista de exercícios 1 (PDF)')],['Genética mendeliana','1ª e 2ª leis de Mendel', mats('PDF da aula · Genética','Lista de exercícios 2 (PDF)')],['Ecologia','Cadeias e teias alimentares', mats('PDF da aula · Ecologia','Lista de exercícios 3 (PDF)')]],
-  his:[['Brasil república','Da proclamação à redemocratização', mats('PDF da aula · Brasil república','Lista de exercícios 1 (PDF)')],['Guerra Fria','Contexto e desdobramentos', mats('PDF da aula · Guerra Fria','Lista de exercícios 2 (PDF)')],['Revolução Industrial','Causas e impactos sociais', mats('PDF da aula · Rev. Industrial','Lista de exercícios 3 (PDF)')]],
-  geog:[['Geopolítica atual','Conflitos e blocos econômicos', mats('PDF da aula · Geopolítica','Lista de exercícios 1 (PDF)')],['Climatologia','Fenômenos e impactos', mats('PDF da aula · Climatologia','Lista de exercícios 2 (PDF)')],['Urbanização brasileira','Processos e desigualdades', mats('PDF da aula · Urbanização','Lista de exercícios 3 (PDF)')]],
-  fil:[['Ética e cidadania','Debates contemporâneos', mats('PDF da aula · Ética','Lista de exercícios 1 (PDF)')],['Contrato social','Hobbes, Locke e Rousseau', mats('PDF da aula · Contrato social','Lista de exercícios 2 (PDF)')],['Movimentos sociais','Sociologia aplicada ao Enem', mats('PDF da aula · Mov. sociais','Lista de exercícios 3 (PDF)')]],
-};
+/* ============ MATERIAIS (PDFs de aula / listas) ============
+   Só existem se o monitor realmente subiu o arquivo (tabela `materiais` + bucket
+   de Storage `materiais`). Sem upload, a matéria aparece vazia — nada de conteúdo fixo. */
+let materiaisAll = [];
+let materiaisBySubject = {};
+function ensureMateriaisSubject(sid){ if(!materiaisBySubject[sid]) materiaisBySubject[sid] = []; }
+subjects.forEach(s=> ensureMateriaisSubject(s.id));
 
 /* ============ COMPOSIÇÃO DE NOTAS ============
    Estrutura flexível: cada matéria define sua própria matriz de avaliação por semestre
@@ -1314,27 +1289,14 @@ const mascotPhrases = {
 /* ============ MONITOR ============
    Aulas realmente dadas pelo monitor (histórico), usadas para calcular horas complementares
    e gerar o relatório. Cada chamada de presença fica registrada em `attendance[classId]`. */
-const monitorProfile = { name:'', turma:'' }; // preenchido após o login, a partir da tabela `monitores`
-let uidCounter = 1000;
-function newId(prefix){ return prefix + (uidCounter++); }
+const monitorProfile = { id:null, name:'', turma:'' }; // preenchido após o login, a partir da tabela `monitores`
+function newId(prefix){ return prefix + '_' + crypto.randomUUID(); }
 
-let monitorClasses = [
-  {id:'c1', date:'11/08', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-  {id:'c2', date:'11/08', day:'TER', subjectId:'red', time:'19h10 – 20h50', duration:1.5, turma:'3ºA'},
-  {id:'c3', date:'12/08', day:'QUA', subjectId:'bio', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-  {id:'c4', date:'18/08', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-  {id:'c5', date:'18/08', day:'TER', subjectId:'red', time:'19h10 – 20h50', duration:1.5, turma:'3ºA'},
-  {id:'c6', date:'19/08', day:'QUA', subjectId:'bio', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-  {id:'c7', date:'25/08', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-  {id:'c8', date:'26/08', day:'QUA', subjectId:'bio', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-  {id:'c9', date:'01/09', day:'TER', subjectId:'fis', time:'17h20 – 19h00', duration:1.5, turma:'3ºA'},
-];
-// attendance[classId] = { studentId: true (presente) | false (falta) }
-let attendance = {
-  c1: {s1:true,s2:true,s3:true,s4:false,s5:true,s6:true,s7:false},
-  c2: {s1:true,s2:true,s3:true,s4:true,s5:true,s6:false,s7:false},
-  c3: {s1:true,s2:true,s3:false,s4:true,s5:true,s6:true,s7:true},
-};
+/* Aulas dadas e presença por aula agora vêm 100% do Supabase
+   (tabelas `aulas` e `presencas`) — ver loadAulas() / loadPresencas(). */
+let monitorClasses = [];
+// attendance[aulaId] = { alunoId: true (presente) | false (falta) }
+let attendance = {};
 let currentAttendanceClassId = null;
 
 /* ============ SUPABASE ============ */
@@ -1374,6 +1336,7 @@ function mapAlunoRow(row){
 async function resolveRoleAndProfile(email){
   const { data: monitor } = await supabaseClient.from('monitores').select('*').eq('email', email).maybeSingle();
   if(monitor){
+    monitorProfile.id = monitor.id;
     monitorProfile.name = monitor.nome;
     monitorProfile.turma = monitor.turma_responsavel || '';
     myAlunoId = null;
@@ -1388,7 +1351,9 @@ async function resolveRoleAndProfile(email){
 }
 
 /* Monitor enxerga a tabela `alunos` completa (nome, contato, notas...).
-   Aluno enxerga a view `ranking_alunos` (sem e-mail/telefone/nascimento dos colegas). */
+   Aluno enxerga a view `ranking_alunos` (sem e-mail/telefone/nascimento dos colegas).
+   freq/xp/streak vêm prontos do banco — são recalculados de verdade pelo trigger
+   `on_presenca_change` toda vez que uma chamada é salva, nunca inventados aqui. */
 async function loadStudents(role){
   const table = role === 'monitor' ? 'alunos' : 'ranking_alunos';
   const { data, error } = await supabaseClient.from(table).select('*');
@@ -1401,6 +1366,62 @@ async function loadStudents(role){
   students = (data || []).map(mapAlunoRow).sort((a,b)=> b.freq - a.freq);
 }
 
+/* Aulas dadas — tabela `aulas` — mapeadas para o mesmo formato que a UI já usava. */
+async function loadAulas(){
+  const { data, error } = await supabaseClient.from('aulas').select('*').order('data', {ascending:true}).order('horario', {ascending:true});
+  if(error){ console.error(error); showToast('⚠ Erro ao carregar aulas'); monitorClasses = []; return; }
+  monitorClasses = (data || []).map(r=>({
+    id:r.id, date:formatDateBR(r.data), isoDate:r.data, day:r.dia_semana||'', subjectId:r.subject_id,
+    time:r.horario, duration:Number(r.duracao)||1.5, turma:r.turma,
+  }));
+}
+
+/* Presença — tabela `presencas` — vira attendance[aulaId] = {alunoId: true|false}. */
+async function loadPresencas(){
+  const { data, error } = await supabaseClient.from('presencas').select('*');
+  if(error){ console.error(error); attendance = {}; return; }
+  attendance = {};
+  (data || []).forEach(r=>{
+    if(!attendance[r.aula_id]) attendance[r.aula_id] = {};
+    attendance[r.aula_id][r.aluno_id] = !!r.presente;
+  });
+}
+
+/* Materiais (PDFs de aula/lista) — tabela `materiais`, arquivo real no bucket `materiais`. */
+async function loadMateriais(){
+  const { data, error } = await supabaseClient.from('materiais').select('*').order('created_at', {ascending:false});
+  if(error){ console.error(error); materiaisAll = []; return; }
+  materiaisAll = data || [];
+  materiaisBySubject = {};
+  subjects.forEach(s=> ensureMateriaisSubject(s.id));
+  materiaisAll.forEach(m=>{ ensureMateriaisSubject(m.subject_id); materiaisBySubject[m.subject_id].push(m); });
+}
+
+/* Atividades atribuídas — tabela `atividades`. */
+async function loadAtividades(){
+  const { data, error } = await supabaseClient.from('atividades').select('*').order('created_at', {ascending:false});
+  if(error){ console.error(error); atividades = []; return; }
+  atividades = (data || []).map(r=>({
+    id:r.id, subjectId:r.subject_id, title:r.titulo, description:r.descricao || 'Sem instruções adicionais.',
+    assignedFilePath:r.arquivo_enunciado_path, assignedFileName:r.arquivo_enunciado_nome,
+    prazoDiaIndex:r.prazo_dia_semana, dueLabel:r.prazo_label, xp:Number(r.xp_valor)||0,
+  }));
+}
+
+/* Entregas — a existência da linha em `entregas` é a única coisa que marca uma
+   atividade como entregue. Nunca é um estado marcado manualmente. */
+async function loadEntregas(role){
+  const { data, error } = await supabaseClient.from('entregas').select('*');
+  if(error){ console.error(error); minhasEntregas = {}; entregasByAtividade = {}; return; }
+  minhasEntregas = {};
+  entregasByAtividade = {};
+  (data || []).forEach(r=>{
+    if(role === 'aluno' && r.aluno_id === myAlunoId) minhasEntregas[r.atividade_id] = r;
+    if(!entregasByAtividade[r.atividade_id]) entregasByAtividade[r.atividade_id] = {};
+    entregasByAtividade[r.atividade_id][r.aluno_id] = r;
+  });
+}
+
 async function initAfterLogin(role){
   await loadStudents(role);
 
@@ -1410,6 +1431,7 @@ async function initAfterLogin(role){
       showToast('⚠ Não foi possível carregar seu perfil de aluno.');
       return;
     }
+    await Promise.all([loadMateriais(), loadAtividades(), loadEntregas('aluno')]);
     const topName = document.getElementById('alunoTopName');
     if(topName) topName.textContent = me.name;
     renderHeader();
@@ -1422,13 +1444,13 @@ async function initAfterLogin(role){
     renderNotas();
     renderRanking();
   } else if(role === 'monitor'){
+    await Promise.all([loadAulas(), loadPresencas(), loadMateriais(), loadAtividades(), loadEntregas('monitor')]);
     initMonitor();
   }
 }
 
 /* ============ STATE ============ */
 let currentSubject = 'gram';
-const completedModules = new Set(['gram-0','red-0','alg-0']); // demo: módulos já concluídos
 let me = null; // aluno logado — preenchido em initAfterLogin()
 
 /* ============ NAV ============ */
@@ -1476,7 +1498,7 @@ function renderToday(){
     div.className='today-item';
     if(sid){
       const s = subjects.find(x=>x.id===sid);
-      const pending = tasksDueOn(todayIndex).find(t=>t.subjectId===sid && !t.submission);
+      const pending = tasksDueOn(todayIndex).find(t=>t.subjectId===sid && !minhasEntregas[t.id]);
       div.innerHTML = `<span class="today-time">${slots[i]}</span><span class="subj">${s.name}</span>${pending?`<span class="pending-flag">📌 Entrega hoje</span>`:''}<span class="who">${s.tag}</span>`;
       list.appendChild(div);
     } else if(i < grade[todayIndex].filter(x=>x).length + 1){
@@ -1523,16 +1545,16 @@ function renderWeekGrid(){
 
       if(sid){
         const s = subjects.find(x=>x.id===sid);
-        const pendingTask = dueToday.find(t=>t.subjectId===sid && !t.submission);
+        const pendingTask = dueToday.find(t=>t.subjectId===sid && !minhasEntregas[t.id]);
         const cls = ['cell','lesson', isToday?'today':'', pendingTask?'has-pending':''].join(' ');
         html += `<div class="${cls}">
             <span class="s-name">${s.name}</span>
             <span class="s-tag">${s.tag}</span>
             ${pendingTask?`<span class="pending-flag">📌 Entrega pendente</span>`:''}
           </div>`;
-      } else if(isWeekend && si===0 && dueToday.some(t=>!t.submission)){
+      } else if(isWeekend && si===0 && dueToday.some(t=>!minhasEntregas[t.id])){
         // Fim de semana sem aula, mas com prazo de tarefa pendente: mostra a matéria da entrega.
-        const pend = dueToday.filter(t=>!t.submission);
+        const pend = dueToday.filter(t=>!minhasEntregas[t.id]);
         html += `<div class="cell lesson pending-only">
             ${pend.map(t=>{
               const s = subjects.find(x=>x.id===t.subjectId);
@@ -1561,9 +1583,10 @@ function coverStyle(s){
 function renderSubjectGrid(){
   const el = document.getElementById('subjectGrid');
   el.innerHTML = subjects.map(s=>{
-    const mods = modules[s.id];
-    const done = mods.filter((m,i)=>completedModules.has(s.id+'-'+i)).length;
-    const pct = Math.round(done/mods.length*100);
+    const mats = materiaisBySubject[s.id] || [];
+    const label = mats.length
+      ? `${mats.length} material${mats.length===1?'':'is'} postado${mats.length===1?'':'s'} pelo monitor`
+      : 'Nenhum material postado ainda';
     return `
     <div class="subject-card" data-sid="${s.id}">
       <div class="subject-cover" style="${coverStyle(s)}">
@@ -1572,11 +1595,7 @@ function renderSubjectGrid(){
       </div>
       <div class="subject-body">
         <div class="s-name">${s.name}</div>
-        <div class="s-tag2">${mods.length} conteúdos · PDFs da aula e listas</div>
-        <div class="s-meta">
-          <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${s.accent}"></div></div>
-          <span class="mono">${pct}%</span>
-        </div>
+        <div class="s-tag2">${label}</div>
       </div>
     </div>`;
   }).join('');
@@ -1605,45 +1624,47 @@ function openSubject(sid){
 }
 
 function renderSubjectPanel(){
-  const mods = modules[currentSubject];
+  const mats = materiaisBySubject[currentSubject] || [];
   const panel = document.getElementById('subjectPanel');
-  let rows = mods.map((m,i)=>{
-    const key = currentSubject+'-'+i;
-    const done = completedModules.has(key);
-    const chips = m[2].map(mat=>`<button class="material-chip ${mat.type}" data-file="${mat.label}.pdf">${mat.type==='aula'?'📄':'📝'} ${mat.label} <span style="opacity:.7;">⬇</span></button>`).join('');
+  if(!mats.length){
+    panel.innerHTML = `<div class="empty-hint">O monitor ainda não postou nenhum PDF (aula ou lista) para esta matéria.</div>`;
+    return;
+  }
+  const rows = mats.map(m=>{
+    const tipoLabel = m.tipo==='aula' ? 'PDF da aula' : 'Lista de exercícios';
     return `
       <div class="module-row">
-        <div class="check ${done?'done':''}" data-key="${key}">${done?'✓':''}</div>
         <div style="flex:1;">
-          <div class="m-title">${m[0]}</div>
-          <div class="m-desc">${m[1]}</div>
-          <div style="margin-top:7px;">${chips}</div>
+          <div class="m-title">${m.titulo}</div>
+          <div class="m-desc">${tipoLabel} · postado em ${new Date(m.created_at).toLocaleDateString('pt-BR')}</div>
         </div>
-        <div class="m-xp">+15 XP</div>
+        <button class="material-chip ${m.tipo}" data-path="${m.arquivo_path}" data-file="${m.arquivo_nome}">${m.tipo==='aula'?'📄':'📝'} ${m.arquivo_nome} <span style="opacity:.7;">⬇</span></button>
       </div>`;
   }).join('');
   panel.innerHTML = `
-    <div class="empty-note" style="padding:0 0 6px;">${mods.length} conteúdos disponíveis · PDFs de simulação</div>
+    <div class="empty-note" style="padding:0 0 6px;">${mats.length} material${mats.length===1?'':'is'} disponível${mats.length===1?'':'is'}</div>
     ${rows}
   `;
-  panel.querySelectorAll('.check').forEach(c=>{
-    c.addEventListener('click', ()=>{
-      const key = c.dataset.key;
-      if(completedModules.has(key)){ completedModules.delete(key); c.classList.remove('done'); c.textContent=''; }
-      else { completedModules.add(key); c.classList.add('done'); c.textContent='✓'; }
-    });
-  });
 }
 
 function renderConteudos(){
   showSubjectGrid();
 }
 
-/* Delegação de clique para qualquer chip de material (PDF de aula / lista) — central de downloads */
+/* Delegação de clique para qualquer chip de material (PDF de aula / lista / enunciado)
+   — abre o arquivo de verdade no bucket do Supabase Storage. */
 document.addEventListener('click', e=>{
   const chip = e.target.closest('.material-chip, .dl-btn');
-  if(!chip || !chip.dataset.file) return;
-  showToast(`⬇ Baixando ${chip.dataset.file}`);
+  if(!chip) return;
+  const path = chip.dataset.path;
+  const bucket = chip.dataset.bucket || 'materiais';
+  if(!path){ return; }
+  const { data } = supabaseClient.storage.from(bucket).getPublicUrl(path);
+  if(data && data.publicUrl){
+    window.open(data.publicUrl, '_blank');
+  } else {
+    showToast('⚠ Não foi possível abrir o arquivo');
+  }
 });
 
 /* ============ TOAST ============ */
@@ -1662,11 +1683,12 @@ function showToast(msg){
    que muda no fluxo do aluno. */
 function renderTasks(){
   const el = document.getElementById('tasksList');
-  const sorted = [...tasks].sort((a,b)=> (!!a.submission - !!b.submission) || a.dueDayIndex-b.dueDayIndex);
+  const sorted = [...atividades].sort((a,b)=> (!!minhasEntregas[a.id] - !!minhasEntregas[b.id]) || a.prazoDiaIndex-b.prazoDiaIndex);
   el.innerHTML = sorted.map(t=>{
     const s = subjects.find(x=>x.id===t.subjectId);
-    const status = t.submission ? 'enviado' : 'pendente';
-    const statusLabel = t.submission ? 'Enviado' : 'Pendente';
+    const entrega = minhasEntregas[t.id];
+    const status = entrega ? 'enviado' : 'pendente';
+    const statusLabel = entrega ? 'Enviado' : 'Pendente';
     return `
     <div class="task-card" data-tid="${t.id}">
       <div class="task-head">
@@ -1681,15 +1703,15 @@ function renderTasks(){
         </div>
       </div>
       <div class="task-actions">
-        ${t.assignedFile ? `<button class="dl-btn" data-file="${t.assignedFile}">
+        ${t.assignedFilePath ? `<button class="dl-btn" data-path="${t.assignedFilePath}" data-file="${t.assignedFileName}" data-bucket="materiais">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
             Baixar enunciado
           </button>` : `<span class="empty-note" style="padding:0;">Sem anexo do professor — envie sua resposta abaixo</span>`}
       </div>
-      ${t.submission
+      ${entrega
         ? `<div class="submitted-file">
              <span class="f-icon">📄</span>
-             <div><div class="f-name">${t.submission.fileName}</div><div class="f-meta">Enviado em ${t.submission.submittedAt}</div></div>
+             <div><div class="f-name">${entrega.arquivo_nome}</div><div class="f-meta">Enviado em ${new Date(entrega.enviado_em).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}${entrega.nota!=null?' · Nota: '+entrega.nota:''}</div></div>
              <button class="f-remove" data-remove="${t.id}">Remover e reenviar</button>
            </div>`
         : `<label class="upload-zone" data-drop="${t.id}">
@@ -1702,7 +1724,7 @@ function renderTasks(){
   }).join('');
 
   const pendingDot = document.getElementById('tarefasPendingDot');
-  pendingDot.style.display = tasks.some(t=>!t.submission) ? 'inline-block' : 'none';
+  pendingDot.style.display = atividades.some(t=>!minhasEntregas[t.id]) ? 'inline-block' : 'none';
 
   el.querySelectorAll('input[type=file][data-upload]').forEach(inp=>{
     inp.addEventListener('change', ()=>{
@@ -1712,9 +1734,15 @@ function renderTasks(){
     });
   });
   el.querySelectorAll('[data-remove]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const task = tasks.find(x=>x.id===btn.dataset.remove);
-      task.submission = null;
+    btn.addEventListener('click', async ()=>{
+      const atividadeId = btn.dataset.remove;
+      const entrega = minhasEntregas[atividadeId];
+      if(!entrega) return;
+      btn.disabled = true;
+      const { error } = await supabaseClient.from('entregas').delete().eq('id', entrega.id);
+      if(error){ console.error(error); showToast('⚠ Erro ao remover envio'); btn.disabled = false; return; }
+      await supabaseClient.storage.from('entregas').remove([entrega.arquivo_path]);
+      delete minhasEntregas[atividadeId];
       renderTasks();
     });
   });
@@ -1729,11 +1757,18 @@ function renderTasks(){
   });
 }
 
-function submitTaskFile(taskId, file){
+async function submitTaskFile(atividadeId, file){
   const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
   if(!isPdf){ showToast('⚠ Envie um arquivo em PDF'); return; }
-  const task = tasks.find(x=>x.id===taskId);
-  task.submission = {fileName:file.name, submittedAt:'agora'};
+  if(!myAlunoId){ showToast('⚠ Não foi possível identificar seu cadastro de aluno'); return; }
+  const path = `${atividadeId}/${myAlunoId}/${Date.now()}_${file.name}`;
+  const { error: upErr } = await supabaseClient.storage.from('entregas').upload(path, file, { upsert:true });
+  if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar arquivo: ' + upErr.message); return; }
+  const { data, error } = await supabaseClient.from('entregas').upsert({
+    atividade_id: atividadeId, aluno_id: myAlunoId, arquivo_path: path, arquivo_nome: file.name,
+  }, { onConflict:'atividade_id,aluno_id' }).select().maybeSingle();
+  if(error){ console.error(error); showToast('⚠ Erro ao registrar entrega: ' + error.message); return; }
+  minhasEntregas[atividadeId] = data;
   showToast(`✓ Resposta enviada: ${file.name}`);
   renderTasks();
   renderWeekGrid();
@@ -1861,7 +1896,7 @@ function refreshMonitorStats(){
   const totalHoras = monitorClasses.reduce((a,c)=>a+c.duration,0);
   document.getElementById('statHoras').textContent = (Math.round(totalHoras*10)/10) + 'h';
   document.getElementById('statAlunos').textContent = students.length;
-  document.getElementById('statAtividades').textContent = tasks.length;
+  document.getElementById('statAtividades').textContent = atividades.length;
 }
 
 function classRowHtml(c){
@@ -1974,14 +2009,22 @@ function openAttendanceFor(classId){
   renderRoster();
   document.getElementById('attendanceCard').scrollIntoView({behavior:'smooth', block:'start'});
 }
-document.getElementById('classForm').addEventListener('submit', e=>{
+document.getElementById('classForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const subjectId = document.getElementById('classSubject').value;
-  const date = document.getElementById('classDate').value;
   const day = document.getElementById('classDay').value;
   const time = document.getElementById('classTime').value;
   const turma = document.getElementById('classTurma').value;
-  const c = {id:newId('c'), date, day, subjectId, time, duration:1.5, turma};
+  const isoDate = new Date().toISOString().slice(0,10);
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  const { data, error } = await supabaseClient.from('aulas').insert({
+    data: isoDate, dia_semana: day, subject_id: subjectId, horario: time, duracao: 1.5, turma,
+    criado_por: monitorProfile.id,
+  }).select().maybeSingle();
+  submitBtn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao registrar aula: ' + error.message); return; }
+  const c = { id:data.id, date:formatDateBR(data.data), isoDate:data.data, day:data.dia_semana, subjectId:data.subject_id, time:data.horario, duration:Number(data.duracao), turma:data.turma };
   monitorClasses.push(c);
   currentAttendanceClassId = c.id;
   refreshMonitorStats();
@@ -1992,15 +2035,26 @@ document.getElementById('classForm').addEventListener('submit', e=>{
   showToast('✓ Aula registrada — marque a presença abaixo');
   document.getElementById('attendanceCard').scrollIntoView({behavior:'smooth', block:'start'});
 });
-document.getElementById('saveAttendanceBtn').addEventListener('click', ()=>{
+document.getElementById('saveAttendanceBtn').addEventListener('click', async ()=>{
   if(!currentAttendanceClassId) return;
   const rec = {};
   document.querySelectorAll('#rosterList .present-toggle').forEach(btn=> rec[btn.dataset.sid] = btn.classList.contains('present'));
+  const rows = Object.entries(rec).map(([alunoId, presente])=>({
+    aula_id: currentAttendanceClassId, aluno_id: alunoId, presente,
+  }));
+  const saveBtn = document.getElementById('saveAttendanceBtn');
+  saveBtn.disabled = true;
+  const { error } = await supabaseClient.from('presencas').upsert(rows, { onConflict:'aula_id,aluno_id' });
+  saveBtn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao salvar chamada: ' + error.message); return; }
   attendance[currentAttendanceClassId] = rec;
   const presentCount = Object.values(rec).filter(Boolean).length;
   showToast(`✓ Chamada salva: ${presentCount}/${students.length} presentes`);
   renderClassHistory();
   renderReportTable();
+  // presença dispara o recálculo de frequência/streak/XP no banco — recarrega para refletir.
+  await loadStudents('monitor');
+  renderAlunosTable();
 });
 
 /* ---------- Ajuda genérica: zona de upload (clique + arrastar) ---------- */
@@ -2022,94 +2076,107 @@ function wireUploadZone(zoneId, inputId, labelId, defaultLabel){
 }
 
 /* ---------- Conteúdos Aula (PDFs) ---------- */
-let monitorMaterialsLog = [];
-document.getElementById('materialForm').addEventListener('submit', e=>{
+document.getElementById('materialForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const subjectId = document.getElementById('matSubject').value;
   const tipo = document.getElementById('matTipo').value;
   const titulo = document.getElementById('matTitulo').value.trim() || 'Material extra';
   const file = document.getElementById('matArquivo').files[0];
   if(!file){ showToast('⚠ Selecione o arquivo em PDF'); return; }
-  const arquivo = file.name.replace(/\.pdf$/i,'');
   const s = subjects.find(x=>x.id===subjectId);
-  modules[subjectId].push([titulo, 'Enviado pelo monitor em '+new Date().toLocaleDateString('pt-BR'), [{type:tipo, label:arquivo}]]);
-  monitorMaterialsLog.unshift({subjectId, tipo, titulo, arquivo, at:new Date().toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'})});
+  const path = `${subjectId}/${tipo}/${Date.now()}_${file.name}`;
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  const { error: upErr } = await supabaseClient.storage.from('materiais').upload(path, file, { upsert:true });
+  if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar arquivo: ' + upErr.message); submitBtn.disabled = false; return; }
+  const { error } = await supabaseClient.from('materiais').insert({
+    subject_id: subjectId, tipo, titulo, arquivo_path: path, arquivo_nome: file.name, publicado_por: monitorProfile.id,
+  });
+  submitBtn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao salvar material: ' + error.message); return; }
   e.target.reset();
   document.getElementById('matFileLabel').textContent = 'Toque para escolher o PDF';
+  await loadMateriais();
   renderMateriaisList();
-  renderConteudos();
   showToast(`✓ PDF adicionado em ${s.name}`);
 });
 function renderMateriaisList(){
   const el = document.getElementById('materiaisList');
-  document.getElementById('materiaisCount').textContent = monitorMaterialsLog.length + (monitorMaterialsLog.length===1?' material':' materiais');
-  if(!monitorMaterialsLog.length){ el.innerHTML = '<div class="empty-hint">Nenhum material enviado ainda.</div>'; return; }
-  el.innerHTML = monitorMaterialsLog.map(m=>{
-    const s = subjects.find(x=>x.id===m.subjectId);
+  document.getElementById('materiaisCount').textContent = materiaisAll.length + (materiaisAll.length===1?' material':' materiais');
+  if(!materiaisAll.length){ el.innerHTML = '<div class="empty-hint">Nenhum material enviado ainda.</div>'; return; }
+  el.innerHTML = materiaisAll.map(m=>{
+    const s = subjects.find(x=>x.id===m.subject_id);
+    const at = new Date(m.created_at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
     return `<div class="class-row" style="cursor:default;">
-      <span class="c-date">${m.at}</span>
+      <span class="c-date">${at}</span>
       <span class="c-subject">${s.icon} ${s.name} · ${m.titulo}</span>
-      <span class="c-time">${m.tipo==='aula'?'📄 PDF da aula':'📝 Lista'} · ${m.arquivo}.pdf</span>
+      <span class="c-time">${m.tipo==='aula'?'📄 PDF da aula':'📝 Lista'} · ${m.arquivo_nome}</span>
     </div>`;
   }).join('');
 }
 
-/* ---------- Atividades (atribuição + recebimento + nota por entrega) ---------- */
-let taskSubmissions = {
-  t3: { s5: {submitted:true, fileName:'estequiometria_beatriz.pdf', grade:8.5} },
-};
-function ensureTaskSubmissions(taskId){
-  if(!taskSubmissions[taskId]) taskSubmissions[taskId] = {};
-  students.forEach(st=>{
-    if(!taskSubmissions[taskId][st.id]) taskSubmissions[taskId][st.id] = {submitted:false, fileName:null, grade:null};
-  });
-}
-document.getElementById('taskForm').addEventListener('submit', e=>{
+/* ---------- Atividades (atribuição + recebimento + nota por entrega) ----------
+   "Entregue" nunca é marcado manualmente pelo monitor: só existe se houver uma
+   linha em `entregas`, criada quando o próprio aluno sobe o arquivo dele. */
+document.getElementById('taskForm').addEventListener('submit', async e=>{
   e.preventDefault();
   const subjectId = document.getElementById('taskSubject').value;
   const dayIdx = parseInt(document.getElementById('taskDay').value, 10);
   const hora = document.getElementById('taskHora').value.trim() || '23h59';
+  const xp = parseInt(document.getElementById('taskXp').value, 10) || 0;
   const anexoFile = document.getElementById('taskAnexo').files[0];
-  const anexo = anexoFile ? anexoFile.name : null;
   const titulo = document.getElementById('taskTitulo').value.trim();
   const desc = document.getElementById('taskDesc').value.trim();
   if(!titulo){ showToast('⚠ Informe o título da atividade'); return; }
-  const id = newId('t');
-  tasks.push({
-    id, subjectId, title:titulo, description: desc || 'Sem instruções adicionais.',
-    assignedFile: anexo, dueDayIndex: dayIdx, dueLabel: `${days[dayIdx]} · ${hora}`, submission:null,
+  const submitBtn = e.target.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+
+  let anexoPath = null, anexoNome = null;
+  if(anexoFile){
+    anexoPath = `enunciados/${subjectId}/${Date.now()}_${anexoFile.name}`;
+    const { error: upErr } = await supabaseClient.storage.from('materiais').upload(anexoPath, anexoFile, { upsert:true });
+    if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar anexo: ' + upErr.message); submitBtn.disabled = false; return; }
+    anexoNome = anexoFile.name;
+  }
+
+  const { error } = await supabaseClient.from('atividades').insert({
+    subject_id: subjectId, titulo, descricao: desc || null,
+    arquivo_enunciado_path: anexoPath, arquivo_enunciado_nome: anexoNome,
+    prazo_dia_semana: dayIdx, prazo_label: `${days[dayIdx]} · ${hora}`, xp_valor: xp,
+    criado_por: monitorProfile.id,
   });
-  ensureTaskSubmissions(id);
+  submitBtn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao atribuir atividade: ' + error.message); return; }
+
   e.target.reset();
   document.getElementById('taskHora').value = '23h59';
+  document.getElementById('taskXp').value = '10';
   document.getElementById('taskFileLabel').textContent = 'Toque para anexar o enunciado';
+  await Promise.all([loadAtividades(), loadEntregas('monitor')]);
   renderAtividadesList();
-  renderTasks();
-  renderWeekGrid();
   refreshMonitorStats();
   showToast('✓ Atividade atribuída');
 });
 function renderAtividadesList(){
-  tasks.forEach(t=> ensureTaskSubmissions(t.id));
   const el = document.getElementById('atividadesAccordion');
-  document.getElementById('atividadesCount').textContent = tasks.length + (tasks.length===1?' atividade':' atividades');
-  el.innerHTML = tasks.map(t=>{
+  document.getElementById('atividadesCount').textContent = atividades.length + (atividades.length===1?' atividade':' atividades');
+  el.innerHTML = atividades.map(t=>{
     const s = subjects.find(x=>x.id===t.subjectId);
-    const subs = taskSubmissions[t.id];
-    const entregues = Object.values(subs).filter(x=>x.submitted).length;
+    const subs = entregasByAtividade[t.id] || {};
+    const entregues = students.filter(st=>subs[st.id]).length;
     const rows = students.map(st=>{
       const sub = subs[st.id];
       return `<div class="comp-row">
-        <span class="c-label">${st.name}${sub.fileName?' · '+sub.fileName:''}</span>
-        <button type="button" class="present-toggle ${sub.submitted?'present':'absent'}" data-tid="${t.id}" data-sid="${st.id}" data-action="toggle-sub">${sub.submitted?'✓ Entregue':'Marcar entregue'}</button>
-        <input type="number" min="0" max="10" step="0.1" class="grade-input-field" data-tid="${t.id}" data-sid="${st.id}" value="${sub.grade!=null?sub.grade:''}" placeholder="nota" ${sub.submitted?'':'disabled'}>
+        <span class="c-label">${st.name}${sub?' · '+sub.arquivo_nome:''}</span>
+        <span class="pill ${sub?'ok':'warn'}" style="justify-self:end;">${sub?'✓ Entregue':'Pendente'}</span>
+        <input type="number" min="0" max="10" step="0.1" class="grade-input-field" data-tid="${t.id}" data-sid="${st.id}" data-eid="${sub?sub.id:''}" value="${sub&&sub.nota!=null?sub.nota:''}" placeholder="nota" ${sub?'':'disabled'}>
       </div>`;
     }).join('');
     return `<div class="grade-item" data-tid="${t.id}">
       <div class="grade-row">
         <span class="g-name">${s.icon} ${s.name} · ${t.title}</span>
         <span class="g-freq mono">${entregues}/${students.length}</span>
-        <span class="pill ${entregues===students.length?'ok':'warn'}">${entregues===students.length?'Todos entregaram':'Aguardando entregas'}</span>
+        <span class="pill ${entregues===students.length && students.length>0?'ok':'warn'}">${entregues===students.length && students.length>0?'Todos entregaram':'Aguardando entregas'}</span>
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="grade-detail"><div class="grade-detail-in">${rows}</div></div>
@@ -2117,25 +2184,16 @@ function renderAtividadesList(){
   }).join('');
 
   el.querySelectorAll('.grade-row').forEach(row=> row.addEventListener('click', ()=> row.closest('.grade-item').classList.toggle('open')));
-  el.querySelectorAll('[data-action="toggle-sub"]').forEach(btn=>{
-    btn.addEventListener('click', ev=>{
-      ev.stopPropagation();
-      const {tid, sid} = btn.dataset;
-      const sub = taskSubmissions[tid][sid];
-      sub.submitted = !sub.submitted;
-      if(!sub.submitted) sub.grade = null;
-      renderAtividadesList();
-      const item = el.querySelector(`.grade-item[data-tid="${tid}"]`);
-      if(item) item.classList.add('open');
-    });
-  });
   el.querySelectorAll('.grade-input-field').forEach(inp=>{
     inp.addEventListener('click', ev=> ev.stopPropagation());
-    inp.addEventListener('change', ()=>{
-      const {tid, sid} = inp.dataset;
+    inp.addEventListener('change', async ()=>{
+      const { tid, sid, eid } = inp.dataset;
+      if(!eid) return;
       let v = parseFloat(inp.value);
       v = isNaN(v) ? null : Math.max(0, Math.min(10, Math.round(v*10)/10));
-      taskSubmissions[tid][sid].grade = v;
+      const { error } = await supabaseClient.from('entregas').update({ nota:v }).eq('id', eid);
+      if(error){ console.error(error); showToast('⚠ Erro ao salvar nota'); return; }
+      if(entregasByAtividade[tid] && entregasByAtividade[tid][sid]) entregasByAtividade[tid][sid].nota = v;
       inp.value = v!=null ? v : '';
       showToast('✓ Nota salva');
     });

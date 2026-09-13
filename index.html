@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -1339,7 +1340,7 @@ let currentAttendanceClassId = null;
 /* ============ SUPABASE ============ */
 const SUPABASE_URL = 'https://yhclkyjdxrqtwjntflik.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Bb-jyMTb-JuIEOIjXB5uPQ_FsETXJG8';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let myAlunoId = null; // id do aluno logado, usado para marcar "você" na lista/ranking
 
@@ -1371,14 +1372,14 @@ function mapAlunoRow(row){
 /* Descobre se o e-mail logado pertence a um monitor ou a um aluno, consultando
    as tabelas de perfil criadas no Supabase, e preenche monitorProfile / myAlunoId. */
 async function resolveRoleAndProfile(email){
-  const { data: monitor } = await supabase.from('monitores').select('*').eq('email', email).maybeSingle();
+  const { data: monitor } = await supabaseClient.from('monitores').select('*').eq('email', email).maybeSingle();
   if(monitor){
     monitorProfile.name = monitor.nome;
     monitorProfile.turma = monitor.turma_responsavel || '';
     myAlunoId = null;
     return 'monitor';
   }
-  const { data: aluno } = await supabase.from('alunos').select('*').eq('email', email).maybeSingle();
+  const { data: aluno } = await supabaseClient.from('alunos').select('*').eq('email', email).maybeSingle();
   if(aluno){
     myAlunoId = aluno.id;
     return 'aluno';
@@ -1390,7 +1391,7 @@ async function resolveRoleAndProfile(email){
    Aluno enxerga a view `ranking_alunos` (sem e-mail/telefone/nascimento dos colegas). */
 async function loadStudents(role){
   const table = role === 'monitor' ? 'alunos' : 'ranking_alunos';
-  const { data, error } = await supabase.from(table).select('*');
+  const { data, error } = await supabaseClient.from(table).select('*');
   if(error){
     console.error(error);
     showToast('⚠ Erro ao carregar alunos');
@@ -1906,7 +1907,7 @@ document.getElementById('alunoForm').addEventListener('submit', async e=>{
   const submitBtn = e.target.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
 
-  const { error } = await supabase.from('alunos').insert({
+  const { error } = await supabaseClient.from('alunos').insert({
     nome_completo: nome,
     data_nascimento: parseDateBRtoISO(birthDate),
     escola_atual: school || null,
@@ -2298,7 +2299,7 @@ loginForm.addEventListener('submit', async e=>{
 
   loginSubmitBtn.disabled = true;
 
-  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password: pass });
+  const { data: authData, error: authError } = await supabaseClient.auth.signInWithPassword({ email, password: pass });
 
   if(authError || !authData.session){
     errorText.textContent = 'E-mail ou senha incorretos.';
@@ -2317,7 +2318,7 @@ loginForm.addEventListener('submit', async e=>{
   if(!role){
     errorText.textContent = 'Login válido, mas nenhum perfil de aluno ou monitor foi encontrado para este e-mail.';
     errorMsg.classList.add('show');
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     return;
   }
 
@@ -2343,12 +2344,12 @@ document.getElementById('togglePass').addEventListener('click', ()=>{
 document.getElementById('btnContinuar').addEventListener('click', ()=> showApp());
 
 document.getElementById('logoutBtn').addEventListener('click', async ()=>{
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   students = []; me = null; myAlunoId = null; pendingRole = null;
   showLogin();
 });
 document.getElementById('logoutBtnMon').addEventListener('click', async ()=>{
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   students = []; myAlunoId = null; pendingRole = null;
   showLogin();
 });
@@ -2356,7 +2357,7 @@ document.getElementById('logoutBtnMon').addEventListener('click', async ()=>{
 /* Sessão já ativa (ex: recarregou a página) entra direto no painel certo.
    O supabase-js guarda a sessão sozinho (localStorage), então só perguntamos a ele. */
 (async ()=>{
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
   if(session && session.user && session.user.email){
     const role = await resolveRoleAndProfile(session.user.email);
     if(role){

@@ -1178,13 +1178,13 @@ const weekendIndex = [5,6];
 const slots = ['17h20 – 19h00','19h10 – 20h50'];
 // grade[dayIndex][slotIndex] = subject id or null
 const grade = [
-  ['gram','alg'],
-  ['fis','red'],
-  ['bio','geo'],
-  ['lit','qui'],
-  ['his','geog'],
-  [null,null],
-  [null,null],
+  ['gram', null],   // segunda
+  ['fis',  'fil'],  // terça
+  ['qui',  'lit'],  // quarta
+  ['alg',  'bio'],  // quinta
+  ['his',  'geo'],  // sexta
+  [null,   null],   // sábado
+  [null,   null],   // domingo
 ];
 const todayIndex = new Date().getDay()===0 ? 6 : new Date().getDay()-1; // Seg=0 ... Dom=6, calculado de verdade
 

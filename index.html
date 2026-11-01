@@ -489,11 +489,13 @@
   .stat-card span{font-size:11.5px;color:var(--muted);}
 
   .form-card{display:flex;flex-direction:column;gap:14px;}
-  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;}
+  .form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px 16px;align-items:end;}
+  .m-field{min-width:0;}
   .m-field label{display:block;font-size:11.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
   .m-field .input-shell select,
   .m-field .input-shell input{all:unset;flex:1;padding:11px 0;font-size:13px;color:var(--ink);font-family:'Inter';width:100%;}
-  .m-field .input-shell{padding:0 12px;}
+  .m-field .input-shell{padding:0 12px;min-height:44px;box-sizing:border-box;}
+  .m-field .input-shell input[type=date],.m-field .input-shell input[type=month]{min-height:42px;box-sizing:border-box;}
   .m-field textarea{
     all:unset;display:block;width:100%;box-sizing:border-box;border:1.5px solid var(--line);border-radius:12px;
     padding:11px 12px;font-size:13px;font-family:'Inter';background:var(--bg);min-height:64px;
@@ -518,7 +520,7 @@
   }
   .roster-row:last-child{border-bottom:none;}
   .roster-row .r-name{font-weight:600;font-size:13px;flex:1;}
-  .roster-row .r-turma{font-size:11.5px;color:var(--muted);}
+  .roster-row .r-escola{font-size:11.5px;color:var(--muted);}
   .present-toggle{
     all:unset;display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;
     padding:6px 12px;border-radius:999px;cursor:pointer;transition:.15s;
@@ -545,6 +547,19 @@
   .grade-input-field:focus{border-color:var(--azul-atlantico);box-shadow:0 0 0 3px var(--blue-100);}
   .grade-input-field:disabled{opacity:.4;background:var(--bg);}
   .comp-row .present-toggle{flex:none;margin-left:auto;}
+
+  .btn-danger{
+    all:unset;display:inline-flex;align-items:center;justify-content:center;gap:6px;
+    background:var(--risk-100);color:var(--risk);font-weight:700;font-size:12.5px;
+    padding:9px 16px;border-radius:11px;cursor:pointer;transition:.15s;
+  }
+  .btn-danger:hover{background:#F7CEC8;}
+  .btn-danger:disabled,.btn-primary:disabled{opacity:.6;cursor:default;}
+  .row-actions{display:flex;gap:8px;margin-left:auto;flex:none;}
+  .row-actions .btn-secondary,.row-actions .btn-danger{padding:6px 12px;font-size:11.5px;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(21,30,51,.45);display:none;align-items:center;justify-content:center;z-index:60;padding:20px;}
+  .modal-overlay.show{display:flex;}
+  .modal-card{background:#fff;border-radius:18px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;box-shadow:0 24px 60px rgba(21,30,51,.3);}
 </style>
 </head>
 <body>
@@ -895,7 +910,6 @@
 
     <div class="sidebar-foot">
       <div class="streak" style="margin-bottom:2px;">👤 <b id="monName">Monitor</b></div>
-      <div class="streak-note" style="margin-top:0;">Turma responsável: <span id="monTurma">3ºA</span></div>
       <button class="logout-btn" id="logoutBtnMon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5M21 12H9"/></svg>
         Sair
@@ -911,7 +925,7 @@
         </button>
         <div>
           <h1 id="pageTitleMon">Cadastro de Alunos</h1>
-          <div class="sub" id="pageSubMon">Cadastre e gerencie a turma</div>
+          <div class="sub" id="pageSubMon">Cadastre e gerencie os alunos</div>
         </div>
       </div>
       <div class="top-right">
@@ -963,10 +977,10 @@
 
         <div class="section-title"><h3>Alunos cadastrados</h3><span class="hint" id="alunosCount">0 alunos</span></div>
         <div class="card">
-          <table>
+          <div style="overflow-x:auto;"><table style="min-width:820px;">
             <thead><tr><th>Nome</th><th>Nascimento</th><th>Escola atual</th><th>E-mail</th><th>Telefone</th><th>Endereço</th><th>Pretende cursar</th></tr></thead>
             <tbody id="alunosTableBody"></tbody>
-          </table>
+          </table></div>
           <p class="empty-note" style="padding-top:12px;">Por segurança, não é possível excluir um aluno cadastrado por aqui. Fale com a coordenação em caso de erro de cadastro.</p>
         </div>
       </div>
@@ -997,12 +1011,6 @@
                     <option value="17h20 – 19h00">17h20 – 19h00</option>
                     <option value="19h10 – 20h50">19h10 – 20h50</option>
                   </select>
-                </div>
-              </div>
-              <div class="m-field">
-                <label for="classTurma">Turma</label>
-                <div class="input-shell">
-                  <select id="classTurma"><option>3ºA</option><option>3ºB</option><option>Extensivo</option></select>
                 </div>
               </div>
             </div>
@@ -1062,7 +1070,7 @@
           </form>
         </div>
 
-        <div class="section-title"><h3>Materiais enviados por você</h3><span class="hint" id="materiaisCount">0 materiais</span></div>
+        <div class="section-title"><h3>Materiais enviados</h3><span class="hint" id="materiaisCount">0 materiais</span></div>
         <div class="card"><div id="materiaisList"></div></div>
       </div>
 
@@ -1202,7 +1210,7 @@
         </div>
         <div class="card">
           <table>
-            <thead><tr><th>Data</th><th>Dia</th><th>Matéria</th><th>Horário</th><th class="num">Duração</th><th>Turma</th><th class="num">Presença</th></tr></thead>
+            <thead><tr><th>Data</th><th>Dia</th><th>Matéria</th><th>Horário</th><th class="num">Duração</th><th class="num">Presença</th></tr></thead>
             <tbody id="reportTableBody"></tbody>
           </table>
         </div>
@@ -1212,6 +1220,7 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalOverlay"><div class="modal-card" id="modalCard"></div></div>
 <div class="toast" id="toast"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1314,7 +1323,7 @@ const mascotPhrases = {
 /* ============ MONITOR ============
    Aulas realmente dadas pelo monitor (histórico), usadas para calcular horas complementares
    e gerar o relatório. Cada chamada de presença fica registrada em `attendance[classId]`. */
-const monitorProfile = { id:null, name:'', turma:'' }; // preenchido após o login, a partir da tabela `monitores`
+const monitorProfile = { id:null, name:'' }; // preenchido após o login, a partir da tabela `monitores`
 function newId(prefix){ return prefix + '_' + crypto.randomUUID(); }
 
 /* Aulas dadas e presença por aula agora vêm 100% do Supabase
@@ -1367,7 +1376,6 @@ async function resolveRoleAndProfile(email){
     myProfileRow = monitor;
     monitorProfile.id = monitor.id;
     monitorProfile.name = monitor.nome;
-    monitorProfile.turma = monitor.turma_responsavel || '';
     myAlunoId = null;
     return 'monitor';
   }
@@ -1402,7 +1410,7 @@ async function loadAulas(){
   if(error){ console.error(error); showToast('⚠ Erro ao carregar aulas'); monitorClasses = []; return; }
   monitorClasses = (data || []).map(r=>({
     id:r.id, date:formatDateBR(r.data), isoDate:r.data, day:r.dia_semana||'', subjectId:r.subject_id,
-    time:r.horario, duration:Number(r.duracao)||1.5, turma:r.turma,
+    time:r.horario, duration:Number(r.duracao)||1.5,
   }));
 }
 
@@ -1566,7 +1574,7 @@ function renderQuickStats(){
   const media = grades.length ? fmtNota(grades.reduce((a,g)=>a+g.nota,0)/grades.length) : '—';
   const next = badgeState().find(b=>!b.unlocked);
   grid.innerHTML = `
-    <div class="card stat-card"><span class="label">Presença geral</span><span class="value">${me.freq}%</span><span class="foot">${me.freq>avgFreq?'Acima':'Abaixo'} da média da turma (${avgFreq}%)</span></div>
+    <div class="card stat-card"><span class="label">Presença geral</span><span class="value">${me.freq}%</span><span class="foot">${me.freq>avgFreq?'Acima':'Abaixo'} da média dos alunos (${avgFreq}%)</span></div>
     <div class="card stat-card"><span class="label">Média das notas</span><span class="value">${media}</span><span class="foot">${grades.length ? grades.length+' nota'+(grades.length===1?'':'s')+' lançada'+(grades.length===1?'':'s')+' pelo professor' : 'Nenhuma nota lançada ainda'}</span></div>
     <div class="card stat-card"><span class="label">Próxima conquista</span><span class="value">${next ? next.icon+' '+next.name : '🎉 Todas!'}</span><span class="foot">${next ? next.hint : 'Você desbloqueou todas as conquistas'}</span></div>
   `;
@@ -1908,7 +1916,7 @@ function renderRanking(){
 
 /* ============ MONITOR: NAV ============ */
 const monTitles = {
-  'mon-alunos':['Cadastro de Alunos','Cadastre e gerencie a turma'],
+  'mon-alunos':['Cadastro de Alunos','Cadastre e gerencie os alunos'],
   'mon-presenca':['Presença','Registre a aula e marque quem esteve presente'],
   'mon-materiais':['Conteúdos Aula','Envie PDFs de aula e listas de exercícios'],
   'mon-atividades':['Atividades','Atribua tarefas e lance notas de cada entrega'],
@@ -2035,7 +2043,7 @@ function renderRoster(){
     return `<div class="roster-row">
       <div style="flex:1;">
         <div class="r-name">${st.name}</div>
-        <div class="r-turma">${st.school || 'Cursinho FEI'}</div>
+        <div class="r-escola">${st.school || 'Cursinho FEI'}</div>
       </div>
       <button type="button" class="present-toggle ${present?'present':'absent'}" data-sid="${st.id}">${present?'✓ Presente':'✕ Faltou'}</button>
     </div>`;
@@ -2060,17 +2068,16 @@ document.getElementById('classForm').addEventListener('submit', async e=>{
   const subjectId = document.getElementById('classSubject').value;
   const day = document.getElementById('classDay').value;
   const time = document.getElementById('classTime').value;
-  const turma = document.getElementById('classTurma').value;
   const isoDate = new Date().toISOString().slice(0,10);
   const submitBtn = e.target.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
   const { data, error } = await supabaseClient.from('aulas').insert({
-    data: isoDate, dia_semana: day, subject_id: subjectId, horario: time, duracao: 1.5, turma,
+    data: isoDate, dia_semana: day, subject_id: subjectId, horario: time, duracao: 1.5,
     criado_por: monitorProfile.id,
   }).select().maybeSingle();
   submitBtn.disabled = false;
   if(error){ console.error(error); showToast('⚠ Erro ao registrar aula: ' + error.message); return; }
-  const c = { id:data.id, date:formatDateBR(data.data), isoDate:data.data, day:data.dia_semana, subjectId:data.subject_id, time:data.horario, duration:Number(data.duracao), turma:data.turma };
+  const c = { id:data.id, date:formatDateBR(data.data), isoDate:data.data, day:data.dia_semana, subjectId:data.subject_id, time:data.horario, duration:Number(data.duracao) };
   monitorClasses.push(c);
   currentAttendanceClassId = c.id;
   refreshMonitorStats();
@@ -2153,12 +2160,18 @@ function renderMateriaisList(){
   el.innerHTML = materiaisAll.map(m=>{
     const s = subjects.find(x=>x.id===m.subject_id);
     const at = new Date(m.created_at).toLocaleString('pt-BR',{hour:'2-digit',minute:'2-digit',day:'2-digit',month:'2-digit'});
-    return `<div class="class-row" style="cursor:default;">
+    return `<div class="class-row" style="cursor:default;flex-wrap:wrap;">
       <span class="c-date">${at}</span>
-      <span class="c-subject">${s.icon} ${s.name} · ${m.titulo}</span>
-      <span class="c-time">${m.tipo==='aula'?'📄 PDF da aula':'📝 Lista'} · ${m.arquivo_nome}</span>
+      <span class="c-subject">${s.icon} ${s.name} · ${esc(m.titulo)}</span>
+      <span class="c-time">${m.tipo==='aula'?'📄 PDF da aula':'📝 Lista'} · ${esc(m.arquivo_nome)}</span>
+      <span class="row-actions">
+        <button type="button" class="btn-secondary" data-edit-mat="${m.id}">✏️ Editar</button>
+        <button type="button" class="btn-danger" data-del-mat="${m.id}">🗑 Excluir</button>
+      </span>
     </div>`;
   }).join('');
+  el.querySelectorAll('[data-edit-mat]').forEach(b=> b.addEventListener('click', ()=> editMaterialDialog(b.dataset.editMat)));
+  el.querySelectorAll('[data-del-mat]').forEach(b=> b.addEventListener('click', ()=> deleteMaterialDialog(b.dataset.delMat)));
 }
 
 /* ---------- Atividades (atribuição + recebimento + nota por entrega) ----------
@@ -2218,16 +2231,23 @@ function renderAtividadesList(){
     }).join('');
     return `<div class="grade-item" data-tid="${t.id}">
       <div class="grade-row">
-        <span class="g-name">${s.icon} ${s.name} · ${t.title}</span>
+        <span class="g-name">${s.icon} ${s.name} · ${esc(t.title)}</span>
         <span class="g-freq mono">${entregues}/${students.length}</span>
         <span class="pill ${entregues===students.length && students.length>0?'ok':'warn'}">${entregues===students.length && students.length>0?'Todos entregaram':'Aguardando entregas'}</span>
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
       </div>
-      <div class="grade-detail"><div class="grade-detail-in">${rows}</div></div>
+      <div class="grade-detail"><div class="grade-detail-in">
+        <div class="row-actions" style="margin:0 0 10px auto;justify-content:flex-end;">
+          <button type="button" class="btn-secondary" data-edit-ativ="${t.id}">✏️ Editar</button>
+          <button type="button" class="btn-danger" data-del-ativ="${t.id}">🗑 Excluir</button>
+        </div>
+        ${rows}</div></div>
     </div>`;
   }).join('');
 
   el.querySelectorAll('.grade-row').forEach(row=> row.addEventListener('click', ()=> row.closest('.grade-item').classList.toggle('open')));
+  el.querySelectorAll('[data-edit-ativ]').forEach(b=> b.addEventListener('click', ()=> editAtividadeDialog(b.dataset.editAtiv)));
+  el.querySelectorAll('[data-del-ativ]').forEach(b=> b.addEventListener('click', ()=> deleteAtividadeDialog(b.dataset.delAtiv)));
   el.querySelectorAll('.grade-input-field').forEach(inp=>{
     inp.addEventListener('click', ev=> ev.stopPropagation());
     inp.addEventListener('change', async ()=>{
@@ -2301,18 +2321,18 @@ function renderReportTable(){
     const presentCount = att ? Object.values(att).filter(Boolean).length : null;
     return `<tr>
       <td>${c.date}</td><td>${c.day||'—'}</td><td>${s.name}</td><td>${c.time}</td>
-      <td class="num">${c.duration}h</td><td>${c.turma}</td>
+      <td class="num">${c.duration}h</td>
       <td class="num">${att ? presentCount+'/'+students.length : '—'}</td>
     </tr>`;
   }).join('');
 }
 document.getElementById('downloadReportBtn').addEventListener('click', ()=>{
-  const header = ['Data','Dia','Matéria','Horário','Duração (h)','Turma','Presentes'];
+  const header = ['Data','Dia','Matéria','Horário','Duração (h)','Presentes'];
   const rows = monitorClasses.map(c=>{
     const s = subjects.find(x=>x.id===c.subjectId);
     const att = attendance[c.id];
     const presentCount = att ? Object.values(att).filter(Boolean).length : '';
-    return [c.date, c.day||'', s.name, c.time, c.duration, c.turma, presentCount];
+    return [c.date, c.day||'', s.name, c.time, c.duration, presentCount];
   });
   const csv = [header, ...rows].map(r=> r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(';')).join('\n');
   const blob = new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'});
@@ -2398,10 +2418,175 @@ document.getElementById('perfilMonitorForm').addEventListener('submit', async e=
   showToast('✓ Cadastro atualizado');
 });
 
+/* ---------- Modais e gerenciamento de materiais/atividades ----------
+   Qualquer monitor pode editar ou excluir qualquer material ou atividade, mesmo de outro monitor. */
+function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
+function openModal(html){
+  const c = document.getElementById('modalCard');
+  c.innerHTML = html;
+  document.getElementById('modalOverlay').classList.add('show');
+  return c;
+}
+document.getElementById('modalOverlay').addEventListener('click', e=>{ if(e.target.id==='modalOverlay') closeModal(); });
+
+function confirmDelete(itemName, extra, onConfirm){
+  const c = openModal(`
+    <h3 style="margin:0 0 8px;">Excluir</h3>
+    <p style="margin:0 0 4px;font-size:13.5px;font-weight:600;">Você tem certeza que deseja excluir de forma permanente?</p>
+    <p class="empty-note" style="padding:0 0 16px;">${esc(itemName)}${extra?'<br>'+extra:''}</p>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button type="button" class="btn-secondary" id="mdCancel">Cancelar</button>
+      <button type="button" class="btn-danger" id="mdOk">Excluir</button>
+    </div>`);
+  c.querySelector('#mdCancel').onclick = closeModal;
+  c.querySelector('#mdOk').onclick = async ()=>{
+    const b = c.querySelector('#mdOk'); b.disabled = true;
+    await onConfirm();
+    closeModal();
+  };
+}
+
+function editDialog({heading, titulo, descricao, withDesc, fileLabel, accept, onSave}){
+  const c = openModal(`
+    <h3 style="margin:0 0 14px;">${heading}</h3>
+    <div class="m-field" style="margin-bottom:12px;">
+      <label for="mdTitulo">Título</label>
+      <div class="input-shell"><input type="text" id="mdTitulo" value="${esc(titulo)}"></div>
+    </div>
+    ${withDesc ? `<div class="m-field" style="margin-bottom:12px;">
+      <label for="mdDesc">Descrição</label>
+      <textarea id="mdDesc">${esc(descricao)}</textarea>
+    </div>` : ''}
+    <div class="m-field" style="margin-bottom:16px;">
+      <label>Arquivo</label>
+      <div class="empty-note" style="padding:0 0 6px;">${fileLabel}</div>
+      <input type="file" id="mdFile" accept="${accept}" style="font-size:12px;">
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button type="button" class="btn-secondary" id="mdCancel">Cancelar</button>
+      <button type="button" class="btn-primary" id="mdSave">Salvar alterações</button>
+    </div>`);
+  c.querySelector('#mdCancel').onclick = closeModal;
+  c.querySelector('#mdSave').onclick = async ()=>{
+    const titulo = c.querySelector('#mdTitulo').value.trim();
+    if(!titulo){ showToast('⚠ Informe o título'); return; }
+    const b = c.querySelector('#mdSave'); b.disabled = true;
+    const ok = await onSave({
+      titulo,
+      descricao: withDesc ? c.querySelector('#mdDesc').value.trim() : null,
+      file: c.querySelector('#mdFile').files[0] || null,
+    });
+    if(ok) closeModal(); else b.disabled = false;
+  };
+}
+
+/* --- Materiais --- */
+function editMaterialDialog(id){
+  const m = materiaisAll.find(x=>x.id===id);
+  if(!m) return;
+  editDialog({
+    heading:'Editar material', titulo:m.titulo, withDesc:false,
+    fileLabel:'Arquivo atual: '+esc(m.arquivo_nome)+'. Escolha outro para substituir.', accept:'application/pdf,.pdf',
+    onSave: async ({titulo, file})=>{
+      const patch = { titulo };
+      let newPath = null;
+      if(file){
+        newPath = `${m.subject_id}/${m.tipo}/${Date.now()}_${file.name}`;
+        const { error: upErr } = await supabaseClient.storage.from('materiais').upload(newPath, file, { upsert:true });
+        if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar arquivo: ' + upErr.message); return false; }
+        patch.arquivo_path = newPath; patch.arquivo_nome = file.name;
+      }
+      const { data, error } = await supabaseClient.from('materiais').update(patch).eq('id', id).select();
+      if(error || !data || !data.length){
+        console.error(error);
+        if(newPath) await supabaseClient.storage.from('materiais').remove([newPath]);
+        showToast('⚠ Não foi possível salvar' + (error ? ': '+error.message : ' (sem permissão)'));
+        return false;
+      }
+      if(file) await supabaseClient.storage.from('materiais').remove([m.arquivo_path]);
+      await loadMateriais(); renderMateriaisList();
+      showToast('✓ Material atualizado');
+      return true;
+    },
+  });
+}
+function deleteMaterialDialog(id){
+  const m = materiaisAll.find(x=>x.id===id);
+  if(!m) return;
+  confirmDelete(m.titulo + ' · ' + m.arquivo_nome, '', async ()=>{
+    const { data, error } = await supabaseClient.from('materiais').delete().eq('id', id).select();
+    if(error || !data || !data.length){
+      console.error(error);
+      showToast('⚠ Não foi possível excluir' + (error ? ': '+error.message : ' (sem permissão)'));
+      return;
+    }
+    await supabaseClient.storage.from('materiais').remove([m.arquivo_path]);
+    await loadMateriais(); renderMateriaisList();
+    showToast('✓ Material excluído');
+  });
+}
+
+/* --- Atividades --- */
+function editAtividadeDialog(id){
+  const t = atividades.find(x=>x.id===id);
+  if(!t) return;
+  editDialog({
+    heading:'Editar atividade', titulo:t.title, descricao:(t.description==='Sem instruções adicionais.'?'':t.description), withDesc:true,
+    fileLabel: t.assignedFileName ? 'Arquivo atual: '+esc(t.assignedFileName)+'. Escolha outro para substituir.' : 'Sem anexo. Escolha um arquivo para anexar.',
+    accept:'.pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    onSave: async ({titulo, descricao, file})=>{
+      const patch = { titulo, descricao: descricao || null };
+      let newPath = null;
+      if(file){
+        newPath = `enunciados/${t.subjectId}/${Date.now()}_${file.name}`;
+        const { error: upErr } = await supabaseClient.storage.from('materiais').upload(newPath, file, { upsert:true });
+        if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar anexo: ' + upErr.message); return false; }
+        patch.arquivo_enunciado_path = newPath; patch.arquivo_enunciado_nome = file.name;
+      }
+      const { data, error } = await supabaseClient.from('atividades').update(patch).eq('id', id).select();
+      if(error || !data || !data.length){
+        console.error(error);
+        if(newPath) await supabaseClient.storage.from('materiais').remove([newPath]);
+        showToast('⚠ Não foi possível salvar' + (error ? ': '+error.message : ' (sem permissão)'));
+        return false;
+      }
+      if(file && t.assignedFilePath) await supabaseClient.storage.from('materiais').remove([t.assignedFilePath]);
+      await Promise.all([loadAtividades(), loadEntregas('monitor')]);
+      renderAtividadesList();
+      showToast('✓ Atividade atualizada');
+      return true;
+    },
+  });
+}
+function deleteAtividadeDialog(id){
+  const t = atividades.find(x=>x.id===id);
+  if(!t) return;
+  const subs = Object.values(entregasByAtividade[id] || {});
+  const extra = subs.length ? `As ${subs.length} entrega${subs.length===1?'':'s'} dos alunos também serão apagadas.` : '';
+  confirmDelete(t.title, extra, async ()=>{
+    if(subs.length){
+      await supabaseClient.storage.from('entregas').remove(subs.map(e=>e.arquivo_path));
+      const { error: eErr } = await supabaseClient.from('entregas').delete().eq('atividade_id', id);
+      if(eErr){ console.error(eErr); showToast('⚠ Não foi possível apagar as entregas: ' + eErr.message); return; }
+    }
+    const { data, error } = await supabaseClient.from('atividades').delete().eq('id', id).select();
+    if(error || !data || !data.length){
+      console.error(error);
+      showToast('⚠ Não foi possível excluir' + (error ? ': '+error.message : ' (sem permissão)'));
+      return;
+    }
+    if(t.assignedFilePath) await supabaseClient.storage.from('materiais').remove([t.assignedFilePath]);
+    await Promise.all([loadAtividades(), loadEntregas('monitor')]);
+    renderAtividadesList();
+    refreshMonitorStats();
+    showToast('✓ Atividade excluída');
+  });
+}
+
 function initMonitor(){
   document.getElementById('monName').textContent = monitorProfile.name;
   document.getElementById('monTopName').textContent = monitorProfile.name;
-  document.getElementById('monTurma').textContent = monitorProfile.turma;
   populateSubjectSelect('classSubject');
   populateSubjectSelect('matSubject');
   populateSubjectSelect('taskSubject');

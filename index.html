@@ -1813,7 +1813,7 @@ function renderTasks(){
 async function submitTaskFile(atividadeId, file){
   if(!isAllowedDoc(file)){ showToast('⚠ Envie um arquivo em PDF ou Word (.docx)'); return; }
   if(!myAlunoId){ showToast('⚠ Não foi possível identificar seu cadastro de aluno'); return; }
-  const path = `${atividadeId}/${myAlunoId}/${Date.now()}_${file.name}`;
+  const path = `${atividadeId}/${myAlunoId}/${Date.now()}_${safeName(file.name)}`;
   const { error: upErr } = await supabaseClient.storage.from('entregas').upload(path, file, { upsert:true });
   if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar arquivo: ' + upErr.message); return; }
   const { data, error } = await supabaseClient.from('entregas').upsert({
@@ -2137,7 +2137,7 @@ document.getElementById('materialForm').addEventListener('submit', async e=>{
   if(!file){ showToast('⚠ Selecione o arquivo (PDF ou Word)'); return; }
   if(!isAllowedDoc(file)){ showToast('⚠ Envie um arquivo em PDF ou Word (.docx)'); return; }
   const s = subjects.find(x=>x.id===subjectId);
-  const path = `${subjectId}/${tipo}/${Date.now()}_${file.name}`;
+  const path = `${subjectId}/${tipo}/${Date.now()}_${safeName(file.name)}`;
   const submitBtn = e.target.querySelector('button[type="submit"]');
   submitBtn.disabled = true;
   const { error: upErr } = await supabaseClient.storage.from('materiais').upload(path, file, { upsert:true });
@@ -2191,7 +2191,7 @@ document.getElementById('taskForm').addEventListener('submit', async e=>{
 
   let anexoPath = null, anexoNome = null;
   if(anexoFile){
-    anexoPath = `enunciados/${subjectId}/${Date.now()}_${anexoFile.name}`;
+    anexoPath = `enunciados/${subjectId}/${Date.now()}_${safeName(anexoFile.name)}`;
     const { error: upErr } = await supabaseClient.storage.from('materiais').upload(anexoPath, anexoFile, { upsert:true });
     if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar anexo: ' + upErr.message); submitBtn.disabled = false; return; }
     anexoNome = anexoFile.name;
@@ -2420,6 +2420,15 @@ document.getElementById('perfilMonitorForm').addEventListener('submit', async e=
 
 /* ---------- Modais e gerenciamento de materiais/atividades ----------
    Qualquer monitor pode editar ou excluir qualquer material ou atividade, mesmo de outro monitor. */
+/* O Storage do Supabase recusa acentos/espaços/símbolos no caminho do arquivo ("Invalid key").
+   O nome original continua salvo em arquivo_nome; só o caminho usa o nome limpo. */
+function safeName(name){
+  const i = name.lastIndexOf('.');
+  const base = i>0 ? name.slice(0,i) : name;
+  const ext = i>0 ? name.slice(i).toLowerCase().replace(/[^a-z0-9.]/g,'') : '';
+  const clean = base.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9_-]+/g,'_').replace(/^_+|_+$/g,'') || 'arquivo';
+  return clean + ext;
+}
 /* Tipos aceitos nos envios de material e de resposta: PDF e Word. */
 function isAllowedDoc(file){ return /\.(pdf|docx?)$/i.test(file.name); }
 function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
@@ -2494,7 +2503,7 @@ function editMaterialDialog(id){
       const patch = { titulo };
       let newPath = null;
       if(file){
-        newPath = `${m.subject_id}/${m.tipo}/${Date.now()}_${file.name}`;
+        newPath = `${m.subject_id}/${m.tipo}/${Date.now()}_${safeName(file.name)}`;
         const { error: upErr } = await supabaseClient.storage.from('materiais').upload(newPath, file, { upsert:true });
         if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar arquivo: ' + upErr.message); return false; }
         patch.arquivo_path = newPath; patch.arquivo_nome = file.name;
@@ -2541,7 +2550,7 @@ function editAtividadeDialog(id){
       const patch = { titulo, descricao: descricao || null };
       let newPath = null;
       if(file){
-        newPath = `enunciados/${t.subjectId}/${Date.now()}_${file.name}`;
+        newPath = `enunciados/${t.subjectId}/${Date.now()}_${safeName(file.name)}`;
         const { error: upErr } = await supabaseClient.storage.from('materiais').upload(newPath, file, { upsert:true });
         if(upErr){ console.error(upErr); showToast('⚠ Erro ao enviar anexo: ' + upErr.message); return false; }
         patch.arquivo_enunciado_path = newPath; patch.arquivo_enunciado_nome = file.name;

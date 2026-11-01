@@ -673,6 +673,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 21h8M12 17v4M7 4h10l-1 8a4 4 0 0 1-8 0L7 4Z"/><path d="M5 6H3v2a3 3 0 0 0 3 3M19 6h2v2a3 3 0 0 1-3 3"/></svg>
         Ranking &amp; conquistas
       </button>
+      <button data-view="perfil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.7-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>
+        Meu cadastro
+      </button>
     </div>
 
     <div class="sidebar-foot">
@@ -789,6 +793,35 @@
         <div id="notasAluno"></div>
       </div>
 
+      <!-- ===================== MEU CADASTRO (ALUNO) ===================== -->
+      <div class="view" id="view-perfil">
+        <div class="card form-card">
+          <h3 style="margin:0;">Meu cadastro</h3>
+          <p class="empty-note" style="padding:0;">Preencha e mantenha seus dados atualizados. Só você e a equipe do cursinho veem essas informações.</p>
+          <form id="perfilAlunoForm">
+            <div class="form-grid">
+              <div class="m-field">
+                <label for="pfEscola">Escola atual</label>
+                <div class="input-shell"><input type="text" id="pfEscola" placeholder="Ex: E.E. João XXIII"></div>
+              </div>
+              <div class="m-field">
+                <label for="pfNasc">Data de nascimento</label>
+                <div class="input-shell"><input type="date" id="pfNasc"></div>
+              </div>
+              <div class="m-field">
+                <label for="pfEndereco">Endereço</label>
+                <div class="input-shell"><input type="text" id="pfEndereco" placeholder="Rua, número, bairro, cidade"></div>
+              </div>
+              <div class="m-field">
+                <label for="pfCurso">O que pretende cursar na faculdade</label>
+                <div class="input-shell"><input type="text" id="pfCurso" placeholder="Ex: Engenharia de Computação"></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:6px;">Salvar cadastro</button>
+          </form>
+        </div>
+      </div>
+
       <!-- ===================== RANKING ===================== -->
       <div class="view" id="view-ranking">
         <div class="grid grid-2">
@@ -853,6 +886,10 @@
       <button data-view="mon-relatorio">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
         Relatório
+      </button>
+      <button data-view="mon-perfil">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.7-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>
+        Meu cadastro
       </button>
     </div>
 
@@ -927,7 +964,7 @@
         <div class="section-title"><h3>Alunos cadastrados</h3><span class="hint" id="alunosCount">0 alunos</span></div>
         <div class="card">
           <table>
-            <thead><tr><th>Nome</th><th>Nascimento</th><th>Escola atual</th><th>E-mail</th><th>Telefone</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Nascimento</th><th>Escola atual</th><th>E-mail</th><th>Telefone</th><th>Endereço</th><th>Pretende cursar</th></tr></thead>
             <tbody id="alunosTableBody"></tbody>
           </table>
           <p class="empty-note" style="padding-top:12px;">Por segurança, não é possível excluir um aluno cadastrado por aqui. Fale com a coordenação em caso de erro de cadastro.</p>
@@ -1108,6 +1145,41 @@
         </div>
       </div>
 
+      <!-- ===================== MEU CADASTRO (MONITOR) ===================== -->
+      <div class="view" id="view-mon-perfil">
+        <div class="card form-card">
+          <h3 style="margin:0;">Meu cadastro</h3>
+          <p class="empty-note" style="padding:0;">Mantenha seus dados atualizados.</p>
+          <form id="perfilMonitorForm">
+            <div class="form-grid">
+              <div class="m-field">
+                <label for="pmNasc">Data de nascimento</label>
+                <div class="input-shell"><input type="date" id="pmNasc"></div>
+              </div>
+              <div class="m-field">
+                <label for="pmCurso">Curso que faz</label>
+                <div class="input-shell"><input type="text" id="pmCurso" placeholder="Ex: Engenharia Elétrica"></div>
+              </div>
+              <div class="m-field">
+                <label for="pmFormatura">Quando se forma</label>
+                <div class="input-shell"><input type="month" id="pmFormatura"></div>
+              </div>
+              <div class="m-field">
+                <label for="pmTrabalha">Está trabalhando atualmente?</label>
+                <div class="input-shell">
+                  <select id="pmTrabalha"><option value="nao">Não</option><option value="sim">Sim</option></select>
+                </div>
+              </div>
+              <div class="m-field">
+                <label for="pmEmpresa">Nome da empresa</label>
+                <div class="input-shell"><input type="text" id="pmEmpresa" placeholder="Onde trabalha" disabled></div>
+              </div>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top:6px;">Salvar cadastro</button>
+          </form>
+        </div>
+      </div>
+
       <!-- ===================== RELATÓRIO ===================== -->
       <div class="view" id="view-mon-relatorio">
         <div class="stat-grid" style="margin-bottom:22px;">
@@ -1205,6 +1277,10 @@ subjects.forEach(s=> ensureMateriaisSubject(s.id));
    Mesma lista é usada pelo monitor para cadastro de alunos e chamada de presença.
    Agora vem do Supabase (tabela `alunos` / view `ranking_alunos`) — ver loadStudents(). */
 let students = [];
+/* Ordem do ranking: presença, depois XP, e em caso de empate (ou ranking ainda vazio) ordem alfabética. */
+function byRanking(a,b){
+  return (b.freq-a.freq) || (b.xp-a.xp) || a.name.localeCompare(b.name,'pt-BR',{sensitivity:'base'});
+}
 
 /* Conquistas: só as ligadas à presença. O estado vem dos dados reais do aluno. */
 const badgesAll = [
@@ -1213,7 +1289,7 @@ const badgesAll = [
   {icon:'🏆', name:'Top 3 em presença',     hint:'Fique entre os 3 primeiros do ranking de presença', check:(m,rank)=> m.freq>0 && rank>0 && rank<=3},
   {icon:'📚', name:'100% de presença',      hint:'Mantenha 100% de presença nas aulas',            check:(m,rank)=> m.freq>=100},
 ];
-function myRank(){ return [...students].sort((a,b)=> b.freq-a.freq || b.xp-a.xp).findIndex(s=>s.me)+1; }
+function myRank(){ return [...students].sort(byRanking).findIndex(s=>s.me)+1; }
 function badgeState(){ const r = myRank(); return badgesAll.map(b=>({...b, unlocked: !!me && b.check(me, r)})); }
 
 /* ============ XP POR SEQUÊNCIA DE PRESENÇA ============
@@ -1254,6 +1330,7 @@ const SUPABASE_ANON_KEY = 'sb_publishable_Bb-jyMTb-JuIEOIjXB5uPQ_FsETXJG8';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let myAlunoId = null; // id do aluno logado, usado para marcar "você" na lista/ranking
+let myProfileRow = null; // linha do próprio cadastro (aluno ou monitor) em `alunos` / `monitores`
 
 function formatDateBR(isoDate){
   const [y,m,d] = isoDate.split('-');
@@ -1270,6 +1347,8 @@ function mapAlunoRow(row){
     name: row.nome_completo,
     birthDate: row.data_nascimento ? formatDateBR(row.data_nascimento) : '',
     school: row.escola_atual || '',
+    address: row.endereco || '',
+    course: row.curso_pretendido || '',
     email: row.email || '',
     phone: row.telefone || '',
     freq: Number(row.frequencia) || 0,
@@ -1285,6 +1364,7 @@ function mapAlunoRow(row){
 async function resolveRoleAndProfile(email){
   const { data: monitor } = await supabaseClient.from('monitores').select('*').eq('email', email).maybeSingle();
   if(monitor){
+    myProfileRow = monitor;
     monitorProfile.id = monitor.id;
     monitorProfile.name = monitor.nome;
     monitorProfile.turma = monitor.turma_responsavel || '';
@@ -1293,6 +1373,7 @@ async function resolveRoleAndProfile(email){
   }
   const { data: aluno } = await supabaseClient.from('alunos').select('*').eq('email', email).maybeSingle();
   if(aluno){
+    myProfileRow = aluno;
     myAlunoId = aluno.id;
     return 'aluno';
   }
@@ -1312,7 +1393,7 @@ async function loadStudents(role){
     students = [];
     return;
   }
-  students = (data || []).map(mapAlunoRow).sort((a,b)=> b.freq - a.freq);
+  students = (data || []).map(mapAlunoRow).sort(byRanking);
 }
 
 /* Aulas dadas — tabela `aulas` — mapeadas para o mesmo formato que a UI já usava. */
@@ -1402,9 +1483,11 @@ async function initAfterLogin(role){
     renderTasks();
     renderNotas();
     renderRanking();
+    renderPerfilAluno();
   } else if(role === 'monitor'){
     await Promise.all([loadAulas(), loadPresencas(), loadMateriais(), loadAtividades(), loadEntregas('monitor'), loadNotas('monitor')]);
     initMonitor();
+    renderPerfilMonitor();
   }
 }
 
@@ -1420,6 +1503,7 @@ const titles = {
   tarefas:['Tarefas','Entregas atribuídas pelo professor'],
   notas:['Minhas notas','Só você vê os seus dados aqui'],
   ranking:['Ranking & conquistas','Ordenado pela sua presença nas aulas'],
+  perfil:['Meu cadastro','Seus dados pessoais e acadêmicos'],
 };
 document.getElementById('nav').addEventListener('click', e=>{
   const btn = e.target.closest('button[data-view]');
@@ -1436,7 +1520,7 @@ document.getElementById('nav').addEventListener('click', e=>{
 
 /* ============ PAINEL ============ */
 function renderHeader(){
-  const rank = [...students].sort((a,b)=>b.freq-a.freq).findIndex(s=>s.me)+1;
+  const rank = myRank();
   document.getElementById('topRankNum').textContent = '#'+rank;
   document.getElementById('heroRankBig').textContent = '#'+rank;
   document.getElementById('userLvl').textContent = me.xp+' XP';
@@ -1797,7 +1881,7 @@ function renderNotas(){
 
 /* ============ RANKING (por presença) ============ */
 function renderRanking(){
-  const sorted = [...students].sort((a,b)=> b.freq - a.freq || b.xp - a.xp);
+  const sorted = [...students].sort(byRanking);
   const list = document.getElementById('rankList');
   list.innerHTML = sorted.map((s,i)=>`
     <div class="rank-row ${i===0?'top1':''} ${s.me?'me':''}">
@@ -1830,6 +1914,7 @@ const monTitles = {
   'mon-atividades':['Atividades','Atribua tarefas e lance notas de cada entrega'],
   'mon-notas':['Notas','Lance notas de avaliação para os alunos cadastrados'],
   'mon-relatorio':['Relatório','Horas complementares e histórico de aulas'],
+  'mon-perfil':['Meu cadastro','Seus dados pessoais e acadêmicos'],
 };
 document.getElementById('navMon').addEventListener('click', e=>{
   const btn = e.target.closest('button[data-view]');
@@ -1886,6 +1971,8 @@ function renderAlunosTable(){
       <td>${s.school || '—'}</td>
       <td>${s.email || '—'}</td>
       <td>${s.phone || '—'}</td>
+      <td>${s.address || '—'}</td>
+      <td>${s.course || '—'}</td>
     </tr>`).join('');
   document.getElementById('alunosCount').textContent = students.length + (students.length===1?' aluno':' alunos');
 }
@@ -2235,6 +2322,80 @@ document.getElementById('downloadReportBtn').addEventListener('click', ()=>{
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast('⬇ Relatório baixado');
+});
+
+/* ---------- Meu cadastro (aluno e monitor) ----------
+   Salvo por funções RPC no banco, que só alteram a linha do próprio usuário logado. */
+function renderPerfilAluno(){
+  const r = myProfileRow || {};
+  document.getElementById('pfEscola').value = r.escola_atual || '';
+  document.getElementById('pfNasc').value = r.data_nascimento || '';
+  document.getElementById('pfEndereco').value = r.endereco || '';
+  document.getElementById('pfCurso').value = r.curso_pretendido || '';
+  if(!r.escola_atual || !r.data_nascimento || !r.endereco || !r.curso_pretendido){
+    showToast('📝 Complete seu cadastro na aba "Meu cadastro"');
+  }
+}
+document.getElementById('perfilAlunoForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const v = {
+    escola_atual: document.getElementById('pfEscola').value.trim() || null,
+    data_nascimento: document.getElementById('pfNasc').value || null,
+    endereco: document.getElementById('pfEndereco').value.trim() || null,
+    curso_pretendido: document.getElementById('pfCurso').value.trim() || null,
+  };
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const { error } = await supabaseClient.rpc('atualizar_meu_cadastro_aluno', {
+    p_escola: v.escola_atual, p_nascimento: v.data_nascimento, p_endereco: v.endereco, p_curso: v.curso_pretendido,
+  });
+  btn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao salvar cadastro: ' + error.message); return; }
+  myProfileRow = { ...myProfileRow, ...v };
+  showToast('✓ Cadastro atualizado');
+});
+
+function toggleEmpresa(){
+  const trabalha = document.getElementById('pmTrabalha').value === 'sim';
+  const emp = document.getElementById('pmEmpresa');
+  emp.disabled = !trabalha;
+  if(!trabalha) emp.value = '';
+}
+document.getElementById('pmTrabalha').addEventListener('change', toggleEmpresa);
+function renderPerfilMonitor(){
+  const r = myProfileRow || {};
+  document.getElementById('pmNasc').value = r.data_nascimento || '';
+  document.getElementById('pmCurso').value = r.curso || '';
+  document.getElementById('pmFormatura').value = r.previsao_formatura ? String(r.previsao_formatura).slice(0,7) : '';
+  document.getElementById('pmTrabalha').value = r.trabalha ? 'sim' : 'nao';
+  document.getElementById('pmEmpresa').value = r.empresa || '';
+  toggleEmpresa();
+  if(!r.data_nascimento || !r.curso || !r.previsao_formatura || r.trabalha==null){
+    showToast('📝 Complete seu cadastro na aba "Meu cadastro"');
+  }
+}
+document.getElementById('perfilMonitorForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const trabalha = document.getElementById('pmTrabalha').value === 'sim';
+  const formatura = document.getElementById('pmFormatura').value;
+  const v = {
+    data_nascimento: document.getElementById('pmNasc').value || null,
+    curso: document.getElementById('pmCurso').value.trim() || null,
+    previsao_formatura: formatura ? formatura + '-01' : null,
+    trabalha,
+    empresa: trabalha ? (document.getElementById('pmEmpresa').value.trim() || null) : null,
+  };
+  if(trabalha && !v.empresa){ showToast('⚠ Informe o nome da empresa'); return; }
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  const { error } = await supabaseClient.rpc('atualizar_meu_cadastro_monitor', {
+    p_nascimento: v.data_nascimento, p_curso: v.curso, p_formatura: v.previsao_formatura,
+    p_trabalha: v.trabalha, p_empresa: v.empresa,
+  });
+  btn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao salvar cadastro: ' + error.message); return; }
+  myProfileRow = { ...myProfileRow, ...v };
+  showToast('✓ Cadastro atualizado');
 });
 
 function initMonitor(){

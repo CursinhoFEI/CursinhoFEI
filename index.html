@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -191,7 +190,7 @@
 
   /* Weekly grid (7 dias, incluindo fim de semana) */
   .week-grid{
-    display:grid;grid-template-columns:110px repeat(7,1fr);
+    display:grid;grid-template-columns:110px repeat(5,1fr);
     border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);
   }
   .week-grid .cell{padding:12px 10px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);}
@@ -753,7 +752,7 @@
 
       <!-- ===================== GRADE ===================== -->
       <div class="view" id="view-grade">
-        <p class="empty-note" style="margin-bottom:14px;">Semana completa, de segunda a domingo. Seu dia atual aparece destacado e uma tarefa com prazo pendente aparece marcada na matéria correspondente.</p>
+        <p class="empty-note" style="margin-bottom:14px;">Semana de segunda a sexta. Seu dia atual aparece destacado e uma tarefa com prazo pendente aparece marcada na matéria correspondente.</p>
         <div class="week-grid" id="weekGrid"></div>
         <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;">
           <div style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted);"><span style="width:12px;height:12px;border-radius:4px;background:var(--warn-100);border:1px solid #F1D8A0;display:inline-block;"></span> Entrega pendente</div>
@@ -1173,8 +1172,8 @@ const subjects = [
 
 /* Semana completa (seg a dom), para que pendências de fim de semana também apareçam na grade.
    Sáb e Dom não têm aula presencial, mas podem ter prazos de tarefa marcados. */
-const days = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
-const weekendIndex = [5,6];
+const days = ['Seg','Ter','Qua','Qui','Sex'];
+const weekendIndex = [];
 const slots = ['17h20 – 19h00','19h10 – 20h50'];
 // grade[dayIndex][slotIndex] = subject id or null
 const grade = [
@@ -1183,8 +1182,6 @@ const grade = [
   ['qui',  'lit'],  // quarta
   ['alg',  'bio'],  // quinta
   ['his',  'geo'],  // sexta
-  [null,   null],   // sábado
-  [null,   null],   // domingo
 ];
 const todayIndex = new Date().getDay()===0 ? 6 : new Date().getDay()-1; // Seg=0 ... Dom=6, calculado de verdade
 
@@ -1456,7 +1453,7 @@ let me = null; // aluno logado — preenchido em initAfterLogin()
 /* ============ NAV ============ */
 const titles = {
   painel:['Painel','Sua central do Cursinho FEI'],
-  grade:['Grade de aulas','Segunda a domingo, com pendências destacadas'],
+  grade:['Grade de aulas','Segunda a sexta, com pendências destacadas'],
   conteudos:['Conteúdos','Organizados por matéria'],
   tarefas:['Tarefas','Entregas atribuídas pelo professor'],
   notas:['Minhas notas','Só você vê os seus dados aqui'],
@@ -1490,10 +1487,11 @@ function renderHeader(){
 }
 
 function renderToday(){
-  document.getElementById('todayLabel').textContent = days[todayIndex] + '-feira';
+  const dayGrade = grade[todayIndex] || [];   // sáb/dom: sem aula
+  document.getElementById('todayLabel').textContent = todayIndex < 5 ? days[todayIndex] + '-feira' : 'Fim de semana';
   const list = document.getElementById('todayList');
   list.innerHTML = '';
-  grade[todayIndex].forEach((sid, i)=>{
+  dayGrade.forEach((sid, i)=>{
     const div = document.createElement('div');
     div.className='today-item';
     if(sid){
@@ -1501,8 +1499,6 @@ function renderToday(){
       const pending = tasksDueOn(todayIndex).find(t=>t.subjectId===sid && !minhasEntregas[t.id]);
       div.innerHTML = `<span class="today-time">${slots[i]}</span><span class="subj">${s.name}</span>${pending?`<span class="pending-flag">📌 Entrega hoje</span>`:''}<span class="who">${s.tag}</span>`;
       list.appendChild(div);
-    } else if(i < grade[todayIndex].filter(x=>x).length + 1){
-      // não mostra slots vazios além do último preenchido
     }
   });
   if(!list.children.length){

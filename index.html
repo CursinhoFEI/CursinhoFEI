@@ -782,7 +782,7 @@
       <!-- ===================== CONTEUDOS ===================== -->
       <div class="view" id="view-conteudos">
         <div id="subjectGridWrap">
-          <p class="empty-note" style="margin-bottom:14px;">Toque em uma matéria para abrir os conteúdos da sala: PDF da aula e lista de exercícios em PDF de cada tópico.</p>
+          <p class="empty-note" style="margin-bottom:14px;">Toque em uma matéria para abrir os conteúdos da sala: material da aula e lista de exercícios de cada tópico.</p>
           <div class="subject-grid" id="subjectGrid"></div>
         </div>
         <div id="subjectDetailWrap" style="display:none;">
@@ -799,7 +799,7 @@
 
       <!-- ===================== TAREFAS ===================== -->
       <div class="view" id="view-tarefas">
-        <p class="empty-note" style="margin-bottom:14px;">Tarefas atribuídas pelo professor de cada matéria. Baixe o enunciado quando houver e envie sua resposta em PDF.</p>
+        <p class="empty-note" style="margin-bottom:14px;">Tarefas atribuídas pelo professor de cada matéria. Baixe o enunciado quando houver e envie sua resposta em PDF ou Word (.docx).</p>
         <div id="tasksList"></div>
       </div>
 
@@ -1036,7 +1036,7 @@
       <!-- ===================== CONTEÚDOS AULA (PDFs) ===================== -->
       <div class="view" id="view-mon-materiais">
         <div class="card form-card" style="margin-bottom:20px;">
-          <h3 style="margin:0;">Enviar novo material em PDF</h3>
+          <h3 style="margin:0;">Enviar novo material (PDF ou Word)</h3>
           <p class="empty-note" style="padding:0;">O material enviado aparece imediatamente em Conteúdos, na visão do aluno.</p>
           <form id="materialForm">
             <div class="form-grid">
@@ -1047,7 +1047,7 @@
               <div class="m-field">
                 <label for="matTipo">Tipo</label>
                 <div class="input-shell">
-                  <select id="matTipo"><option value="aula">PDF da aula</option><option value="lista">Lista de exercícios</option></select>
+                  <select id="matTipo"><option value="aula">Material da aula</option><option value="lista">Lista de exercícios</option></select>
                 </div>
               </div>
               <div class="m-field">
@@ -1059,13 +1059,13 @@
               <label>Arquivo</label>
               <label class="upload-zone" id="matUploadZone">
                 <span class="u-icon">⬆️</span>
-                <div><div class="u-text" id="matFileLabel">Toque para escolher o PDF</div><div class="u-sub">Ou arraste o arquivo aqui</div></div>
-                <input type="file" id="matArquivo" accept="application/pdf,.pdf">
+                <div><div class="u-text" id="matFileLabel">Toque para escolher o arquivo</div><div class="u-sub">PDF ou Word (.docx) — ou arraste aqui</div></div>
+                <input type="file" id="matArquivo" accept="application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document">
               </label>
             </div>
             <button type="submit" class="btn-primary" style="margin-top:14px;">
               <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3v12m0 0-4-4m4 4 4-4"/><path d="M4 17v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
-              Adicionar PDF
+              Adicionar material
             </button>
           </form>
         </div>
@@ -1103,11 +1103,11 @@
               <textarea id="taskDesc" placeholder="Instruções para o aluno..."></textarea>
             </div>
             <div class="m-field" style="margin-top:14px;">
-              <label>Anexo (PDF ou Excel — opcional)</label>
+              <label>Anexo (PDF, Word ou Excel — opcional)</label>
               <label class="upload-zone" id="taskUploadZone">
                 <span class="u-icon">⬆️</span>
-                <div><div class="u-text" id="taskFileLabel">Toque para anexar o enunciado</div><div class="u-sub">Aceita PDF ou Excel (.xlsx / .xls)</div></div>
-                <input type="file" id="taskAnexo" accept=".pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
+                <div><div class="u-text" id="taskFileLabel">Toque para anexar o enunciado</div><div class="u-sub">Aceita PDF, Word (.docx) ou Excel (.xlsx)</div></div>
+                <input type="file" id="taskAnexo" accept=".pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet">
               </label>
             </div>
             <button type="submit" class="btn-primary" style="margin-top:14px;">
@@ -1680,11 +1680,11 @@ function renderSubjectPanel(){
   const mats = materiaisBySubject[currentSubject] || [];
   const panel = document.getElementById('subjectPanel');
   if(!mats.length){
-    panel.innerHTML = `<div class="empty-hint">O monitor ainda não postou nenhum PDF (aula ou lista) para esta matéria.</div>`;
+    panel.innerHTML = `<div class="empty-hint">O monitor ainda não postou nenhum material (aula ou lista) para esta matéria.</div>`;
     return;
   }
   const rows = mats.map(m=>{
-    const tipoLabel = m.tipo==='aula' ? 'PDF da aula' : 'Lista de exercícios';
+    const tipoLabel = m.tipo==='aula' ? 'Material da aula' : 'Lista de exercícios';
     return `
       <div class="module-row">
         <div style="flex:1;">
@@ -1769,8 +1769,8 @@ function renderTasks(){
            </div>`
         : `<label class="upload-zone" data-drop="${t.id}">
              <span class="u-icon">⬆️</span>
-             <div><div class="u-text">Enviar resposta em PDF</div><div class="u-sub">Toque para escolher o arquivo, ou arraste aqui</div></div>
-             <input type="file" accept="application/pdf,.pdf" data-upload="${t.id}">
+             <div><div class="u-text">Enviar resposta (PDF ou Word)</div><div class="u-sub">Toque para escolher o arquivo, ou arraste aqui</div></div>
+             <input type="file" accept="application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-upload="${t.id}">
            </label>`
       }
     </div>`;
@@ -1811,8 +1811,7 @@ function renderTasks(){
 }
 
 async function submitTaskFile(atividadeId, file){
-  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
-  if(!isPdf){ showToast('⚠ Envie um arquivo em PDF'); return; }
+  if(!isAllowedDoc(file)){ showToast('⚠ Envie um arquivo em PDF ou Word (.docx)'); return; }
   if(!myAlunoId){ showToast('⚠ Não foi possível identificar seu cadastro de aluno'); return; }
   const path = `${atividadeId}/${myAlunoId}/${Date.now()}_${file.name}`;
   const { error: upErr } = await supabaseClient.storage.from('entregas').upload(path, file, { upsert:true });
@@ -1918,7 +1917,7 @@ function renderRanking(){
 const monTitles = {
   'mon-alunos':['Cadastro de Alunos','Cadastre e gerencie os alunos'],
   'mon-presenca':['Presença','Registre a aula e marque quem esteve presente'],
-  'mon-materiais':['Conteúdos Aula','Envie PDFs de aula e listas de exercícios'],
+  'mon-materiais':['Conteúdos Aula','Envie materiais de aula e listas de exercícios (PDF ou Word)'],
   'mon-atividades':['Atividades','Atribua tarefas e lance notas de cada entrega'],
   'mon-notas':['Notas','Lance notas de avaliação para os alunos cadastrados'],
   'mon-relatorio':['Relatório','Horas complementares e histórico de aulas'],
@@ -2135,7 +2134,8 @@ document.getElementById('materialForm').addEventListener('submit', async e=>{
   const tipo = document.getElementById('matTipo').value;
   const titulo = document.getElementById('matTitulo').value.trim() || 'Material extra';
   const file = document.getElementById('matArquivo').files[0];
-  if(!file){ showToast('⚠ Selecione o arquivo em PDF'); return; }
+  if(!file){ showToast('⚠ Selecione o arquivo (PDF ou Word)'); return; }
+  if(!isAllowedDoc(file)){ showToast('⚠ Envie um arquivo em PDF ou Word (.docx)'); return; }
   const s = subjects.find(x=>x.id===subjectId);
   const path = `${subjectId}/${tipo}/${Date.now()}_${file.name}`;
   const submitBtn = e.target.querySelector('button[type="submit"]');
@@ -2148,10 +2148,10 @@ document.getElementById('materialForm').addEventListener('submit', async e=>{
   submitBtn.disabled = false;
   if(error){ console.error(error); showToast('⚠ Erro ao salvar material: ' + error.message); return; }
   e.target.reset();
-  document.getElementById('matFileLabel').textContent = 'Toque para escolher o PDF';
+  document.getElementById('matFileLabel').textContent = 'Toque para escolher o arquivo';
   await loadMateriais();
   renderMateriaisList();
-  showToast(`✓ PDF adicionado em ${s.name}`);
+  showToast(`✓ Material adicionado em ${s.name}`);
 });
 function renderMateriaisList(){
   const el = document.getElementById('materiaisList');
@@ -2163,7 +2163,7 @@ function renderMateriaisList(){
     return `<div class="class-row" style="cursor:default;flex-wrap:wrap;">
       <span class="c-date">${at}</span>
       <span class="c-subject">${s.icon} ${s.name} · ${esc(m.titulo)}</span>
-      <span class="c-time">${m.tipo==='aula'?'📄 PDF da aula':'📝 Lista'} · ${esc(m.arquivo_nome)}</span>
+      <span class="c-time">${m.tipo==='aula'?'📄 Material da aula':'📝 Lista'} · ${esc(m.arquivo_nome)}</span>
       <span class="row-actions">
         <button type="button" class="btn-secondary" data-edit-mat="${m.id}">✏️ Editar</button>
         <button type="button" class="btn-danger" data-del-mat="${m.id}">🗑 Excluir</button>
@@ -2420,6 +2420,8 @@ document.getElementById('perfilMonitorForm').addEventListener('submit', async e=
 
 /* ---------- Modais e gerenciamento de materiais/atividades ----------
    Qualquer monitor pode editar ou excluir qualquer material ou atividade, mesmo de outro monitor. */
+/* Tipos aceitos nos envios de material e de resposta: PDF e Word. */
+function isAllowedDoc(file){ return /\.(pdf|docx?)$/i.test(file.name); }
 function esc(v){ return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function closeModal(){ document.getElementById('modalOverlay').classList.remove('show'); }
 function openModal(html){
@@ -2487,7 +2489,7 @@ function editMaterialDialog(id){
   if(!m) return;
   editDialog({
     heading:'Editar material', titulo:m.titulo, withDesc:false,
-    fileLabel:'Arquivo atual: '+esc(m.arquivo_nome)+'. Escolha outro para substituir.', accept:'application/pdf,.pdf',
+    fileLabel:'Arquivo atual: '+esc(m.arquivo_nome)+'. Escolha outro para substituir.', accept:'application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     onSave: async ({titulo, file})=>{
       const patch = { titulo };
       let newPath = null;
@@ -2534,7 +2536,7 @@ function editAtividadeDialog(id){
   editDialog({
     heading:'Editar atividade', titulo:t.title, descricao:(t.description==='Sem instruções adicionais.'?'':t.description), withDesc:true,
     fileLabel: t.assignedFileName ? 'Arquivo atual: '+esc(t.assignedFileName)+'. Escolha outro para substituir.' : 'Sem anexo. Escolha um arquivo para anexar.',
-    accept:'.pdf,.xls,.xlsx,application/pdf,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    accept:'.pdf,.doc,.docx,.xls,.xlsx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     onSave: async ({titulo, descricao, file})=>{
       const patch = { titulo, descricao: descricao || null };
       let newPath = null;
@@ -2593,7 +2595,7 @@ function initMonitor(){
   populateSubjectSelect('notaSubject');
   document.getElementById('taskDay').innerHTML = days.map((d,i)=>`<option value="${i}">${d}</option>`).join('');
   autoFillClassDateDay();
-  wireUploadZone('matUploadZone','matArquivo','matFileLabel','Toque para escolher o PDF');
+  wireUploadZone('matUploadZone','matArquivo','matFileLabel','Toque para escolher o arquivo');
   wireUploadZone('taskUploadZone','taskAnexo','taskFileLabel','Toque para anexar o enunciado');
   refreshMonitorStats();
   renderAlunosTable();

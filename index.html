@@ -585,7 +585,7 @@
 
     <div class="login-card">
       <h2>Entrar na plataforma</h2>
-      <p class="sub">Use seu e-mail (ou login) e senha para acessar seu painel.</p>
+      <p class="sub">Use seu e-mail e senha para acessar seu painel.</p>
 
       <div class="error-msg" id="errorMsg">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
@@ -594,10 +594,10 @@
 
       <form id="loginForm" novalidate>
         <div class="field" id="userField">
-          <label for="email">E-mail ou login</label>
+          <label for="email">E-mail</label>
           <div class="input-shell">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.6-3.6 4.7-5.5 7.5-5.5s5.9 1.9 7.5 5.5"/></svg>
-            <input type="text" inputmode="email" id="email" name="email" placeholder="seu@email.com ou seu login" autocomplete="username" autocapitalize="none" spellcheck="false">
+            <input type="email" id="email" name="email" placeholder="seu@email.com" autocomplete="email" autocapitalize="none">
           </div>
         </div>
 
@@ -2650,8 +2650,7 @@ function clearLoginErrors(){
 loginForm.addEventListener('submit', async e=>{
   e.preventDefault();
   clearLoginErrors();
-  let email = emailInput.value.trim().toLowerCase();
-  if(email && !email.includes('@')) email += '@monitora.app';   // login sem e-mail (ex.: diretora2026)
+  const email = emailInput.value.trim();
   const pass = passwordInput.value;
 
   if(!email || !pass){

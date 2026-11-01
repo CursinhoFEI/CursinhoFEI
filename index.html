@@ -1048,10 +1048,6 @@
                 <label for="taskHora">Horário do prazo</label>
                 <div class="input-shell"><input type="text" id="taskHora" placeholder="Ex: 23h59" value="23h59"></div>
               </div>
-              <div class="m-field">
-                <label for="taskXp">XP da entrega</label>
-                <div class="input-shell"><input type="number" id="taskXp" min="0" step="1" value="10"></div>
-              </div>
             </div>
             <div class="m-field" style="margin-top:14px;">
               <label for="taskTitulo">Título da atividade</label>
@@ -1193,6 +1189,8 @@ const todayIndex = new Date().getDay()===0 ? 6 : new Date().getDay()-1; // Seg=0
 let atividades = [];
 let minhasEntregas = {};       // minhasEntregas[atividadeId] = entrega do aluno logado (ou undefined)
 let entregasByAtividade = {};  // entregasByAtividade[atividadeId] = [entregas de todos os alunos] (visão do monitor)
+let minhasNotas = [];  // notas de avaliação lançadas pelo professor para o aluno logado
+let notasAll = [];     // todas as notas lançadas (visão do monitor)
 function tasksDueOn(dayIndex){ return atividades.filter(t=>t.prazoDiaIndex===dayIndex); }
 
 /* ============ MATERIAIS (PDFs de aula / listas) ============
@@ -1203,66 +1201,20 @@ let materiaisBySubject = {};
 function ensureMateriaisSubject(sid){ if(!materiaisBySubject[sid]) materiaisBySubject[sid] = []; }
 subjects.forEach(s=> ensureMateriaisSubject(s.id));
 
-/* ============ COMPOSIÇÃO DE NOTAS ============
-   Estrutura flexível: cada matéria define sua própria matriz de avaliação por semestre
-   (nome do item + peso + nota), pensada para ser configurada pelo professor no painel docente.
-   O aluno só visualiza o resultado — o drill-down expande exatamente o que foi configurado. */
-function buildComposition(seed, subjectName){
-  const isRed = subjectName === 'Redação';
-  if(isRed){
-    return {
-      1:[
-        {label:'Redação 1', weight:'peso 3', score:8.2, max:10},
-        {label:'Redação 2', weight:'peso 3', score:7.6, max:10},
-        {label:'Participação em sala', weight:'peso 1', score:9.0, max:10},
-      ],
-      2:[
-        {label:'Redação 3', weight:'peso 3', score:8.5, max:10},
-        {label:'Redação 4', weight:'peso 3', score:8.8, max:10},
-        {label:'Participação em sala', weight:'peso 1', score:9.5, max:10},
-      ],
-    };
-  }
-  const mk = (s)=>({
-    1:[
-      {label:'Prova 1', weight:'peso 4', score: clamp10(s+0.4), max:10},
-      {label:'Lista de exercícios', weight:'peso 2', score: clamp10(s+1.1), max:10},
-      {label:'Prova 2', weight:'peso 4', score: clamp10(s-0.2), max:10},
-    ],
-    2:[
-      {label:'Prova 3', weight:'peso 4', score: clamp10(s+0.6), max:10},
-      {label:'Trabalho em grupo', weight:'peso 2', score: clamp10(s+0.9), max:10},
-      {label:'Prova final', weight:'peso 4', score: clamp10(s), max:10},
-    ],
-  });
-  return mk(seed);
-}
-function clamp10(n){ return Math.max(0, Math.min(10, Math.round(n*10)/10)); }
-const gradeComposition = {};
-subjects.forEach((s,i)=>{
-  const seed = 6.5 + (i%5)*0.5;
-  gradeComposition[s.id] = buildComposition(seed, s.name);
-});
-function semesterAverage(items){
-  const weights = items.map(it=> parseFloat(it.weight.replace(/[^\d.]/g,'')) || 1);
-  const totalW = weights.reduce((a,b)=>a+b,0);
-  const sum = items.reduce((a,it,idx)=>a+it.score*weights[idx],0);
-  return Math.round((sum/totalW)*10)/10;
-}
-
 /* Presença é o que ordena o ranking; XP é mostrado como informação extra.
    Mesma lista é usada pelo monitor para cadastro de alunos e chamada de presença.
    Agora vem do Supabase (tabela `alunos` / view `ranking_alunos`) — ver loadStudents(). */
 let students = [];
 
+/* Conquistas: só as ligadas à presença. O estado vem dos dados reais do aluno. */
 const badgesAll = [
-  {icon:'🔥', name:'Sequência de 5 dias', unlocked:true},
-  {icon:'✍️', name:'Redação nota 900+', unlocked:true},
-  {icon:'📐', name:'Mestre da Geometria', unlocked:true},
-  {icon:'🧪', name:'10 exercícios de Química', unlocked:false},
-  {icon:'🏆', name:'Top 3 do mês em presença', unlocked:false},
-  {icon:'📚', name:'100% de presença no mês', unlocked:false},
+  {icon:'🔥', name:'Sequência de 5 dias',   hint:'Fique 5 dias seguidos sem faltar',               check:(m,rank)=> m.streak>=5},
+  {icon:'⚡', name:'Sequência de 10 dias',  hint:'Fique 10 dias seguidos sem faltar',              check:(m,rank)=> m.streak>=10},
+  {icon:'🏆', name:'Top 3 em presença',     hint:'Fique entre os 3 primeiros do ranking de presença', check:(m,rank)=> m.freq>0 && rank>0 && rank<=3},
+  {icon:'📚', name:'100% de presença',      hint:'Mantenha 100% de presença nas aulas',            check:(m,rank)=> m.freq>=100},
 ];
+function myRank(){ return [...students].sort((a,b)=> b.freq-a.freq || b.xp-a.xp).findIndex(s=>s.me)+1; }
+function badgeState(){ const r = myRank(); return badgesAll.map(b=>({...b, unlocked: !!me && b.check(me, r)})); }
 
 /* ============ XP POR SEQUÊNCIA DE PRESENÇA ============
    Quanto mais dias seguidos sem faltar, mais XP a aula vale.
@@ -1419,6 +1371,16 @@ async function loadEntregas(role){
   });
 }
 
+/* Notas de avaliação — tabela `notas`, lançadas pelo monitor/professor. */
+async function loadNotas(role){
+  let q = supabaseClient.from('notas').select('*').order('created_at', {ascending:true});
+  if(role === 'aluno') q = q.eq('aluno_id', myAlunoId);
+  const { data, error } = await q;
+  if(error){ console.error(error); showToast('⚠ Erro ao carregar notas'); }
+  if(role === 'aluno') minhasNotas = data || [];
+  else notasAll = data || [];
+}
+
 async function initAfterLogin(role){
   await loadStudents(role);
 
@@ -1428,7 +1390,7 @@ async function initAfterLogin(role){
       showToast('⚠ Não foi possível carregar seu perfil de aluno.');
       return;
     }
-    await Promise.all([loadMateriais(), loadAtividades(), loadEntregas('aluno')]);
+    await Promise.all([loadMateriais(), loadAtividades(), loadEntregas('aluno'), loadNotas('aluno')]);
     const topName = document.getElementById('alunoTopName');
     if(topName) topName.textContent = me.name;
     renderHeader();
@@ -1441,7 +1403,7 @@ async function initAfterLogin(role){
     renderNotas();
     renderRanking();
   } else if(role === 'monitor'){
-    await Promise.all([loadAulas(), loadPresencas(), loadMateriais(), loadAtividades(), loadEntregas('monitor')]);
+    await Promise.all([loadAulas(), loadPresencas(), loadMateriais(), loadAtividades(), loadEntregas('monitor'), loadNotas('monitor')]);
     initMonitor();
   }
 }
@@ -1508,18 +1470,21 @@ function renderToday(){
 
 function renderBadgeStrip(){
   const strip = document.getElementById('badgeStrip');
-  strip.innerHTML = badgesAll.map(b=>`
+  strip.innerHTML = badgeState().map(b=>`
     <div class="badge-pill ${b.unlocked?'':'locked'}">${b.icon} ${b.name}</div>
   `).join('');
 }
 
 function renderQuickStats(){
   const grid = document.getElementById('quickStats');
-  const avgFreq = Math.round(students.reduce((a,s)=>a+s.freq,0)/students.length);
+  const avgFreq = students.length ? Math.round(students.reduce((a,s)=>a+s.freq,0)/students.length) : 0;
+  const grades = collectMyGrades();
+  const media = grades.length ? fmtNota(grades.reduce((a,g)=>a+g.nota,0)/grades.length) : '—';
+  const next = badgeState().find(b=>!b.unlocked);
   grid.innerHTML = `
     <div class="card stat-card"><span class="label">Presença geral</span><span class="value">${me.freq}%</span><span class="foot">${me.freq>avgFreq?'Acima':'Abaixo'} da média da turma (${avgFreq}%)</span></div>
-    <div class="card stat-card"><span class="label">Média geral</span><span class="value">${me.media.toFixed(1).replace('.',',')}</span><span class="foot">Em 11 matérias avaliadas</span></div>
-    <div class="card stat-card"><span class="label">Próxima conquista</span><span class="value">🧪 Química</span><span class="foot">Faltam 4 exercícios</span></div>
+    <div class="card stat-card"><span class="label">Média das notas</span><span class="value">${media}</span><span class="foot">${grades.length ? grades.length+' nota'+(grades.length===1?'':'s')+' lançada'+(grades.length===1?'':'s')+' pelo professor' : 'Nenhuma nota lançada ainda'}</span></div>
+    <div class="card stat-card"><span class="label">Próxima conquista</span><span class="value">${next ? next.icon+' '+next.name : '🎉 Todas!'}</span><span class="foot">${next ? next.hint : 'Você desbloqueou todas as conquistas'}</span></div>
   `;
 }
 
@@ -1770,49 +1735,46 @@ async function submitTaskFile(atividadeId, file){
   renderWeekGrid();
 }
 
-/* ============ MINHAS NOTAS (só o que é do aluno) ============
-   Seccionado por semestre; cada matéria expande (drill-down) mostrando a composição de notas
-   configurada pelo professor — a estrutura de "items" vem pronta para o painel docente alimentar. */
-function freqForSubject(i){ return 78 + (i*2)%22; }
-
-function renderSemesterBlock(semNum){
-  const rows = subjects.map((s,i)=>{
-    const items = gradeComposition[s.id][semNum];
-    const nota = semesterAverage(items);
-    const freq = freqForSubject(i);
-    const pill = freq>=85 ? 'ok' : freq>=70 ? 'warn' : 'risk';
-    const label = freq>=85 ? 'Em dia' : freq>=70 ? 'Atenção' : 'Risco';
+/* ============ MINHAS NOTAS ============
+   Só aparece o que o professor/monitor realmente lançou: notas de avaliação (tabela `notas`)
+   e notas dadas às entregas de atividades (coluna `nota` em `entregas`). Nada é inventado. */
+function fmtNota(n){ return n.toFixed(1).replace('.',','); }
+function collectMyGrades(){
+  const list = [];
+  minhasNotas.forEach(n=> list.push({subjectId:n.subject_id, label:n.avaliacao, nota:Number(n.nota)}));
+  atividades.forEach(a=>{
+    const e = minhasEntregas[a.id];
+    if(e && e.nota!=null) list.push({subjectId:a.subjectId, label:'Atividade: '+a.title, nota:Number(e.nota)});
+  });
+  return list;
+}
+function renderNotas(){
+  const alunoBox = document.getElementById('notasAluno');
+  const grades = collectMyGrades();
+  const bySubject = {};
+  grades.forEach(g=>{ (bySubject[g.subjectId] = bySubject[g.subjectId] || []).push(g); });
+  const rows = subjects.filter(s=>bySubject[s.id]).map(s=>{
+    const items = bySubject[s.id];
+    const media = items.reduce((a,g)=>a+g.nota,0)/items.length;
     return `
     <div class="grade-item" data-sid="${s.id}">
       <div class="grade-row">
         <span class="g-name">${s.icon} ${s.name}</span>
-        <span class="g-nota mono">${nota.toFixed(1).replace('.',',')}</span>
-        <span class="g-freq mono">${freq}%</span>
-        <span class="pill ${pill}">${label}</span>
+        <span class="g-nota mono">${fmtNota(media)}</span>
         <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 9l6 6 6-6"/></svg>
       </div>
       <div class="grade-detail">
         <div class="grade-detail-in">
-          ${items.map(it=>`
+          ${items.map(g=>`
             <div class="comp-row">
-              <span class="c-label">${it.label}</span>
-              <span class="c-weight">${it.weight}</span>
-              <span class="c-score mono">${it.score.toFixed(1).replace('.',',')} / ${it.max}</span>
+              <span class="c-label">${g.label}</span>
+              <span class="c-score mono">${fmtNota(g.nota)} / 10</span>
             </div>`).join('')}
-          <div class="comp-note">Composição definida pelo professor para ${s.name.toLowerCase()} — pode variar de matéria para matéria.</div>
+          <div class="comp-note">Notas lançadas pelo professor.</div>
         </div>
       </div>
     </div>`;
   }).join('');
-  return `
-    <div class="semester-block">
-      <div class="semester-head"><h4>${semNum}º Semestre</h4><span>${subjects.length} matérias · toque para ver o detalhamento</span></div>
-      <div class="grade-accordion">${rows}</div>
-    </div>`;
-}
-
-function renderNotas(){
-  const alunoBox = document.getElementById('notasAluno');
   alunoBox.innerHTML = `
     <div class="card own-grade-card" style="margin-bottom:16px;">
       <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -1824,8 +1786,9 @@ function renderNotas(){
       </div>
       <div class="bar-track"><div class="bar-fill" style="width:${me.freq}%"></div></div>
     </div>
-    ${renderSemesterBlock(1)}
-    ${renderSemesterBlock(2)}
+    ${rows
+      ? `<div class="grade-accordion">${rows}</div>`
+      : `<div class="card"><div class="empty-hint">Nenhuma nota lançada ainda. As notas aparecem aqui assim que o professor lançar.</div></div>`}
   `;
   alunoBox.querySelectorAll('.grade-row').forEach(row=>{
     row.addEventListener('click', ()=> row.closest('.grade-item').classList.toggle('open'));
@@ -1848,12 +1811,12 @@ function renderRanking(){
   `).join('');
 
   const ach = document.getElementById('achList');
-  ach.innerHTML = badgesAll.map(b=>`
+  ach.innerHTML = badgeState().map(b=>`
     <div style="display:flex;align-items:center;gap:12px;padding:8px 4px;">
       <div style="font-size:20px;opacity:${b.unlocked?1:.35}">${b.icon}</div>
       <div style="flex:1;">
         <div style="font-weight:600;font-size:13px;color:${b.unlocked?'var(--ink)':'var(--muted)'}">${b.name}</div>
-        <div class="empty-note" style="padding:0;">${b.unlocked ? 'Desbloqueada' : 'Ainda não desbloqueada'}</div>
+        <div class="empty-note" style="padding:0;">${b.unlocked ? 'Desbloqueada' : b.hint}</div>
       </div>
     </div>
   `).join('');
@@ -2119,7 +2082,6 @@ document.getElementById('taskForm').addEventListener('submit', async e=>{
   const subjectId = document.getElementById('taskSubject').value;
   const dayIdx = parseInt(document.getElementById('taskDay').value, 10);
   const hora = document.getElementById('taskHora').value.trim() || '23h59';
-  const xp = parseInt(document.getElementById('taskXp').value, 10) || 0;
   const anexoFile = document.getElementById('taskAnexo').files[0];
   const titulo = document.getElementById('taskTitulo').value.trim();
   const desc = document.getElementById('taskDesc').value.trim();
@@ -2138,7 +2100,7 @@ document.getElementById('taskForm').addEventListener('submit', async e=>{
   const { error } = await supabaseClient.from('atividades').insert({
     subject_id: subjectId, titulo, descricao: desc || null,
     arquivo_enunciado_path: anexoPath, arquivo_enunciado_nome: anexoNome,
-    prazo_dia_semana: dayIdx, prazo_label: `${days[dayIdx]} · ${hora}`, xp_valor: xp,
+    prazo_dia_semana: dayIdx, prazo_label: `${days[dayIdx]} · ${hora}`, xp_valor: 0,
     criado_por: monitorProfile.id,
   });
   submitBtn.disabled = false;
@@ -2146,7 +2108,6 @@ document.getElementById('taskForm').addEventListener('submit', async e=>{
 
   e.target.reset();
   document.getElementById('taskHora').value = '23h59';
-  document.getElementById('taskXp').value = '10';
   document.getElementById('taskFileLabel').textContent = 'Toque para anexar o enunciado';
   await Promise.all([loadAtividades(), loadEntregas('monitor')]);
   renderAtividadesList();
@@ -2196,12 +2157,12 @@ function renderAtividadesList(){
   });
 }
 
-/* ---------- Notas (avaliações / provas, para todos os alunos cadastrados) ---------- */
-let examGrades = {}; // examGrades[`${subjectId}__${examName}`] = {studentId: nota}
+/* ---------- Notas (avaliações / provas) — salvas na tabela `notas` ---------- */
 function renderNotaAlunosList(){
   const subjectId = document.getElementById('notaSubject').value;
   const examName = document.getElementById('notaExame').value.trim() || 'Avaliação';
-  const existing = examGrades[subjectId+'__'+examName] || {};
+  const existing = {};
+  notasAll.filter(n=> n.subject_id===subjectId && n.avaliacao===examName).forEach(n=> existing[n.aluno_id] = n.nota);
   document.getElementById('notaAlunosList').innerHTML = students.map(st=>`
     <div class="comp-row">
       <span class="c-label">${st.name}</span>
@@ -2210,34 +2171,37 @@ function renderNotaAlunosList(){
 }
 document.getElementById('notaSubject').addEventListener('change', renderNotaAlunosList);
 document.getElementById('notaExame').addEventListener('input', renderNotaAlunosList);
-document.getElementById('saveNotasBtn').addEventListener('click', ()=>{
+document.getElementById('saveNotasBtn').addEventListener('click', async ()=>{
   const subjectId = document.getElementById('notaSubject').value;
   const examName = document.getElementById('notaExame').value.trim() || 'Avaliação';
-  const key = subjectId+'__'+examName;
-  const rec = examGrades[key] || {};
+  const rows = [];
   document.querySelectorAll('#notaAlunosList .grade-input-field').forEach(inp=>{
     const v = parseFloat(inp.value);
-    if(!isNaN(v)) rec[inp.dataset.sid] = Math.max(0, Math.min(10, Math.round(v*10)/10));
+    if(!isNaN(v)) rows.push({
+      aluno_id: inp.dataset.sid, subject_id: subjectId, avaliacao: examName,
+      nota: Math.max(0, Math.min(10, Math.round(v*10)/10)), lancado_por: monitorProfile.id,
+    });
   });
-  examGrades[key] = rec;
+  if(!rows.length){ showToast('⚠ Preencha ao menos uma nota'); return; }
+  const btn = document.getElementById('saveNotasBtn');
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('notas').upsert(rows, { onConflict:'aluno_id,subject_id,avaliacao' });
+  btn.disabled = false;
+  if(error){ console.error(error); showToast('⚠ Erro ao salvar notas: ' + error.message); return; }
+  await loadNotas('monitor');
   renderNotasLancadas();
   showToast(`✓ Notas salvas: ${examName}`);
 });
 function renderNotasLancadas(){
   const body = document.getElementById('notasLancadasBody');
-  const rowsData = [];
-  Object.keys(examGrades).forEach(key=>{
-    const [subjectId, examName] = key.split('__');
-    const s = subjects.find(x=>x.id===subjectId);
-    const rec = examGrades[key];
-    Object.keys(rec).forEach(sid=>{
-      const st = students.find(x=>x.id===sid);
-      if(st) rowsData.push({aluno:st.name, materia:s.name, exame:examName, nota:rec[sid]});
-    });
-  });
+  const rowsData = notasAll.map(n=>{
+    const st = students.find(x=>x.id===n.aluno_id);
+    const s = subjects.find(x=>x.id===n.subject_id);
+    return st && s ? {aluno:st.name, materia:s.name, exame:n.avaliacao, nota:Number(n.nota)} : null;
+  }).filter(Boolean);
   document.getElementById('notasLancadasCount').textContent = rowsData.length + (rowsData.length===1?' registro':' registros');
   body.innerHTML = rowsData.length
-    ? rowsData.map(r=>`<tr><td>${r.aluno}</td><td>${r.materia}</td><td>${r.exame}</td><td class="num">${r.nota.toFixed(1).replace('.',',')}</td></tr>`).join('')
+    ? rowsData.map(r=>`<tr><td>${r.aluno}</td><td>${r.materia}</td><td>${r.exame}</td><td class="num">${fmtNota(r.nota)}</td></tr>`).join('')
     : '<tr><td colspan="4" class="empty-note">Nenhuma nota lançada ainda.</td></tr>';
 }
 
